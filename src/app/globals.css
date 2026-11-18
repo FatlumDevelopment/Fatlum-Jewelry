@@ -1,0 +1,37 @@
+@import "tailwindcss";
+@import "@fontsource/cormorant-garamond/500.css";
+@import "@fontsource/cormorant-garamond/600.css";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/great-vibes/400.css";
+
+@theme {
+  --color-navy: #03123f;
+  --color-gold: #bf9e50;
+  --color-gold-dark: #a08440;
+  --color-gold-light: #e9dcb9;
+  --color-secondary: #243673;
+  --color-cream: #f8f5ee;
+  --color-ink: #2b2f3a;
+  --font-serif: "Cormorant Garamond", Georgia, serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-script: "Great Vibes", cursive;
+}
+
+html { scroll-behavior: smooth; }
+body { font-family: var(--font-sans); color: var(--color-ink); background: #fff; }
+h1, h2, h3, .font-serif { font-family: var(--font-serif); }
+.font-script { font-family: var(--font-script); }
+
+:focus-visible { outline: 2px solid #bf9e50; outline-offset: 3px; }
+.skip-link {
+  position: absolute; left: 1rem; top: -4rem; z-index: 80;
+  background: #fff; color: #03123f; padding: 0.5rem 0.8rem; border-radius: 0.4rem;
+}
+.skip-link:focus { top: 0.75rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
