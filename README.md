@@ -2,12 +2,12 @@
 
 Next.js (App Router, TypeScript, Tailwind v4) site for Fatlum rings and jewelry. German is the default (`/de`), English is `/en`. There is no checkout and no price on any page. Visitors add pieces or a ring configuration to a request list and send a form.
 
-Temporary host: `https://devoted-mintcream-goshawk-42.hostingersite.com` (Hostinger Node.js, `npm run build` then `npm start`). Deploy from `main` when you are ready. This repository’s pull request is not merged on its own.
+Temporary host: `https://top-orangered-kudu-52.hostingersite.com` (Hostinger Node.js, `npm run build` then `npm start`). Deploy from `main` when you are ready. This repository’s pull request is not merged on its own.
 
 Sister sites, linked in the header and footer:
 
 - Fatlum Gold — `https://honeydew-seahorse-267054.hostingersite.com`
-- Fatlum Diamonds — `https://quantum-darkseagreen-salamander-62.hostingersite.com`
+- Fatlum Diamonds — `https://little-mistyrose-starling-03.hostingersite.com`
 
 ## Pages
 

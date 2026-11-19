@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     description: t.meta.homeDescription,
     icons: { icon: "/images/brand/fatlum-logo.png" },
     robots: { index: false, follow: false },
-    metadataBase: new URL("https://devoted-mintcream-goshawk-42.hostingersite.com"),
+    metadataBase: new URL("https://top-orangered-kudu-52.hostingersite.com"),
     alternates: { languages: { de: "/de", en: "/en" } },
   };
 }

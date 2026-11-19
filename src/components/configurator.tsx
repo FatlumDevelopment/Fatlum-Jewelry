@@ -316,7 +316,7 @@ function StoneStep({ l, options, ring, onChange }: { l: Locale; options: Catalog
   const spec = findStone(options, ring.stone.code);
   return (
     <div>
-      <p className="mb-3 text-sm text-gray-600">{t.stoneNote} <a className="underline" href="https://quantum-darkseagreen-salamander-62.hostingersite.com">Fatlum Diamonds</a></p>
+      <p className="mb-3 text-sm text-gray-600">{t.stoneNote} <a className="underline" href="https://little-mistyrose-starling-03.hostingersite.com">Fatlum Diamonds</a></p>
       <div className="grid gap-3 sm:grid-cols-2">
         {options.stones.map((stone) => (
           <button key={stone.code} type="button" onClick={() => onChange(stone.code === "none" ? { code: "none", count: 0, size_mm: 0 } : { code: stone.code, count: stone.min_count || 1, size_mm: stone.min_size_mm || 1.5 })} className={`rounded-xl border p-4 text-left ${ring.stone.code === stone.code ? "border-gold bg-cream" : "border-gray-200"}`}>
