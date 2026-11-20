@@ -10,13 +10,13 @@ export function RingCanvas({ config, view, onReady }: { config: RingConfig; view
   return (
     <Canvas
       className="h-full w-full touch-none"
-      dpr={narrow ? [1, 1.1] : [1, 1.5]}
-      camera={{ position: [26, 14, 36], fov: 32, near: 0.1, far: 220 }}
-      gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+      dpr={narrow ? [1, 1.15] : [1, 1.5]}
+      camera={{ position: [18, 12, 28], fov: 30, near: 0.1, far: 400 }}
+      gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping;
-        gl.toneMappingExposure = 1.05;
-        gl.setClearColor(0x000000, 0);
+        gl.toneMappingExposure = 1.02;
+        gl.setClearColor(0xf3f0ea, 1);
         onReady();
       }}
     >

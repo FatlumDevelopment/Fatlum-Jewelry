@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 export default {
   poweredByHeader: false,
+  devIndicators: false,
   reactStrictMode: true,
   images: {
     formats: ["image/avif", "image/webp"],

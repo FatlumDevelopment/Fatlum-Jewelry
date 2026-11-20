@@ -55,70 +55,91 @@ function pushOut(out: number[], a: THREE.Vector3, b: THREE.Vector3, c: THREE.Vec
   else pushFace(out, a, b, c);
 }
 
-/** Faceted round brilliant: flat table, sloping crown, girdle, pavilion. 16 flats. */
+/**
+ * Round brilliant in a unit of girdle-diameter 1 (radius 0.5).
+ * Table, 8 stars, 8 bezels, 16 upper-girdle facets, girdle, 16 lower-girdle facets, 8 pavilion mains.
+ * Every face is its own triangle so the refraction shader sees a hard facet normal.
+ */
 export function roundBrilliant() {
   const out: number[] = [];
-  const tableR = 0.28;
-  const tableY = 0.18;
-  const girdleR = 0.5;
-  const culetY = -0.42;
-  const crown = 8;
-  const table: THREE.Vector3[] = [];
-  const girdle: THREE.Vector3[] = [];
-  for (let i = 0; i < crown; i++) {
-    const a = (i / crown) * Math.PI * 2;
-    table.push(new THREE.Vector3(Math.cos(a) * tableR, tableY, Math.sin(a) * tableR));
+  const R = 0.5;
+  const tableR = R * 0.55;
+  const starR = R * 0.8;
+  const crownY = R * 0.32;
+  const starY = crownY * 0.55;
+  const gTop = R * 0.03;
+  const gBot = -R * 0.03;
+  const breakR = R * 0.42;
+  const breakY = -R * 0.5;
+  const culetY = -R * 0.86;
+  const C: THREE.Vector3[] = [];
+  const K: THREE.Vector3[] = [];
+  const B: THREE.Vector3[] = [];
+  const U: THREE.Vector3[] = [];
+  const LB: THREE.Vector3[] = [];
+  const LU: THREE.Vector3[] = [];
+  const H: THREE.Vector3[] = [];
+  for (let i = 0; i < 8; i++) {
+    const bezel = (i / 8) * Math.PI * 2;
+    const upper = bezel + Math.PI / 8;
+    C.push(V(Math.cos(upper) * tableR, crownY, Math.sin(upper) * tableR));
+    K.push(V(Math.cos(bezel) * starR, starY, Math.sin(bezel) * starR));
+    B.push(V(Math.cos(bezel) * R, gTop, Math.sin(bezel) * R));
+    U.push(V(Math.cos(upper) * R, gTop, Math.sin(upper) * R));
+    LB.push(V(Math.cos(bezel) * R, gBot, Math.sin(bezel) * R));
+    LU.push(V(Math.cos(upper) * R, gBot, Math.sin(upper) * R));
+    H.push(V(Math.cos(upper) * breakR, breakY, Math.sin(upper) * breakR));
   }
-  for (let i = 0; i < crown * 2; i++) {
-    const a = (i / (crown * 2)) * Math.PI * 2 + Math.PI / (crown * 2);
-    girdle.push(new THREE.Vector3(Math.cos(a) * girdleR, 0, Math.sin(a) * girdleR));
+  const culet = V(0, culetY, 0);
+  const table = V(0, crownY, 0);
+  for (let i = 0; i < 8; i++) {
+    const n = (i + 1) % 8;
+    const p = (i + 7) % 8;
+    pushOut(out, table, C[i]!, C[n]!);
+    pushOut(out, C[i]!, K[n]!, C[n]!);
+    pushOut(out, K[i]!, U[p]!, B[i]!);
+    pushOut(out, K[i]!, B[i]!, U[i]!);
+    pushOut(out, B[i]!, U[p]!, U[i]!);
+    pushOut(out, B[i]!, U[i]!, LB[i]!);
+    pushOut(out, U[i]!, LU[i]!, LB[i]!);
+    pushOut(out, U[i]!, B[n]!, LU[i]!);
+    pushOut(out, B[n]!, LB[n]!, LU[i]!);
+    pushOut(out, LU[i]!, LB[i]!, H[i]!);
+    pushOut(out, LU[i]!, H[i]!, LB[n]!);
+    pushOut(out, LB[i]!, H[p]!, culet);
+    pushOut(out, LB[i]!, culet, H[i]!);
   }
-  const culet = new THREE.Vector3(0, culetY, 0);
-  const tri = (a: THREE.Vector3, b: THREE.Vector3, c: THREE.Vector3) => out.push(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z);
-  for (let i = 1; i < crown - 1; i++) tri(table[0], table[i + 1], table[i]);
-  for (let i = 0; i < crown; i++) {
-    const t0 = table[i];
-    const t1 = table[(i + 1) % crown];
-    const g0 = girdle[i * 2];
-    const g1 = girdle[i * 2 + 1];
-    const g2 = girdle[(i * 2 + 2) % girdle.length];
-    tri(t0, g0, g1);
-    tri(t0, g1, t1);
-    tri(t1, g1, g2);
-  }
-  for (let i = 0; i < girdle.length; i++) tri(girdle[(i + 1) % girdle.length], culet, girdle[i]);
   return solid(out);
 }
 
-/** Tapered claw that hooks over a unit-girdle stone. Sits on +X and is rotated into place. */
-export function clawGeometry() {
-  const out: number[] = [];
-  const rings = [
-    { x: 0.56, y: -0.12, r: 0.07 },
-    { x: 0.52, y: 0.0, r: 0.05 },
-    { x: 0.5, y: 0.08, r: 0.038 },
-    { x: 0.44, y: 0.14, r: 0.03 },
-    { x: 0.36, y: 0.18, r: 0.046 },
+/** Slim round prong along +X. The tip curls in over a unit girdle. */
+export function prongGeometry() {
+  const curve = new THREE.CatmullRomCurve3([
+    V(0.5, -0.22, 0),
+    V(0.56, -0.06, 0),
+    V(0.54, 0.03, 0),
+    V(0.45, 0.07, 0),
+  ]);
+  return new THREE.TubeGeometry(curve, 18, 0.042, 10, false);
+}
+
+/** Cup under the stone. Pavilion sits inside it; the rim is just under the girdle. */
+export function galleryGeometry() {
+  const pts = [
+    new THREE.Vector2(0.1, -0.52),
+    new THREE.Vector2(0.16, -0.4),
+    new THREE.Vector2(0.28, -0.26),
+    new THREE.Vector2(0.4, -0.12),
+    new THREE.Vector2(0.52, -0.02),
+    new THREE.Vector2(0.56, 0.02),
+    new THREE.Vector2(0.52, 0.0),
+    new THREE.Vector2(0.36, -0.1),
+    new THREE.Vector2(0.2, -0.28),
+    new THREE.Vector2(0.1, -0.52),
   ];
-  const sides = 8;
-  const circles = rings.map((ring) => Array.from({ length: sides }, (_, i) => {
-    const a = (i / sides) * Math.PI * 2;
-    return V(ring.x, ring.y + Math.sin(a) * ring.r, Math.cos(a) * ring.r);
-  }));
-  for (let s = 0; s < circles.length - 1; s++) {
-    for (let i = 0; i < sides; i++) {
-      const a = circles[s]![i]!;
-      const b = circles[s]![(i + 1) % sides]!;
-      const c = circles[s + 1]![i]!;
-      const d = circles[s + 1]![(i + 1) % sides]!;
-      pushOut(out, a, b, c);
-      pushOut(out, b, d, c);
-    }
-  }
-  const tip = V(0.32, 0.2, 0);
-  const last = circles[circles.length - 1]!;
-  for (let i = 0; i < sides; i++) pushOut(out, last[i]!, last[(i + 1) % sides]!, tip);
-  return solid(out);
+  const geo = new THREE.LatheGeometry(pts, 48);
+  geo.computeVertexNormals();
+  return geo;
 }
 
 function warp(geo: THREE.BufferGeometry, fn: (x: number, y: number, z: number) => [number, number, number]) {
@@ -236,28 +257,31 @@ export function gemGeometry(shape: string) {
 
 export function bandGeometry(innerRadius: number, width: number, thickness: number) {
   const hw = width / 2;
-  const steps = 10;
+  const steps = 18;
   const pts: THREE.Vector2[] = [];
+  const lift = Math.min(0.28, width * 0.1);
   for (let i = 0; i <= steps; i++) {
     const t = i / steps;
     const y = -hw + width * t;
     const dome = Math.sin(Math.PI * t);
-    pts.push(new THREE.Vector2(innerRadius + 0.04 + (1 - dome) * 0.16, y));
+    pts.push(new THREE.Vector2(innerRadius + 0.03 + (1 - dome) * lift, y));
   }
+  const cx = innerRadius + thickness * 0.4;
+  const cr = thickness * 0.64;
   for (let i = 0; i <= steps; i++) {
     const t = i / steps;
     const y = hw - width * t;
-    const dome = Math.sin(Math.PI * t);
-    pts.push(new THREE.Vector2(innerRadius + thickness * (0.78 + 0.22 * dome), y));
+    pts.push(new THREE.Vector2(cx + Math.sin(Math.PI * t) * cr, y));
   }
   pts.push(pts[0]!.clone());
-  const geo = new THREE.LatheGeometry(pts, 96);
+  const geo = new THREE.LatheGeometry(pts, 128);
   geo.computeVertexNormals();
   return geo;
 }
 
+/** Round-brilliant diameter in millimetres. 1 ct is about 6.4 mm. */
 export function caratDiameter(carat: number) {
-  return 6.5 * Math.cbrt(Math.max(0.25, carat));
+  return 6.4 * Math.cbrt(Math.max(0.25, carat));
 }
 
 export function shapeScale(_shape: string): [number, number, number] {
