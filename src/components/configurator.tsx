@@ -68,8 +68,8 @@ export function Configurator({ l, initialMode }: { l: Locale; initialMode: RingC
   const localeNum = (n: number, digits = 2) => n.toLocaleString(l === "de" ? "de-DE" : "en-GB", { minimumFractionDigits: digits, maximumFractionDigits: digits });
 
   return (
-    <div className="pb-20" data-testid="configurator">
-      <header className="max-w-3xl pb-6">
+    <div className="pb-20 pt-10 md:pt-16" data-testid="configurator">
+      <header className="max-w-3xl pb-8">
         <p className="text-[11px] uppercase tracking-[0.22em] text-metal">{t.config.eyebrow}</p>
         <h1 className="mt-3 font-serif text-[2.6rem] leading-[1.02] tracking-[-0.02em] md:text-6xl">{t.config.title}</h1>
         <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-stone">{t.config.lead}</p>

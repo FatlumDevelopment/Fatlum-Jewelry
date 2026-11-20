@@ -122,7 +122,11 @@ export function Header({ l }: { l: Locale }) {
               <Link href={`/${l}/faq`} className="inline-flex min-h-12 items-center font-serif text-2xl">{t.nav.faq}</Link>
               <Link href={`/${l}/kontakt`} className="inline-flex min-h-12 items-center font-serif text-2xl">{t.nav.contact}</Link>
             </div>
-            <div className="mt-10 border-t border-line pt-6">
+            <div className="mt-8 flex items-center gap-2 border-t border-line pt-4">
+              <span className="text-[11px] uppercase tracking-[0.18em] text-stone">{l === "de" ? "Sprache" : "Language"}</span>
+              <LangSwitch l={l} />
+            </div>
+            <div className="mt-6 border-t border-line pt-6">
               <p className="text-[11px] uppercase tracking-[0.2em] text-stone">{t.footer.sisters}</p>
               <a className="mt-3 block min-h-11 py-2" href={`${SISTER.gold}/${l}`}>{t.sisters.gold}</a>
               <a className="block min-h-11 py-2" href={`${SISTER.diamonds}/${l}`}>{t.sisters.diamonds}</a>
@@ -148,8 +152,8 @@ export function Header({ l }: { l: Locale }) {
         <Link href={`/${l}`} className="flex min-h-11 items-center gap-3">
           <img src="/images/brand/fatlum-logo.png" alt="" width={36} height={36} className="h-9 w-9 rounded-full object-cover" />
           <span className="leading-none">
-            <span className="block font-serif text-[1.35rem] tracking-[0.22em] text-ink">FATLUM</span>
-            <span className="mt-1 block text-[9px] tracking-[0.32em] text-stone">JEWELRY</span>
+            <span className="block font-serif text-[1.15rem] tracking-[0.12em] text-ink min-[420px]:text-[1.35rem] min-[420px]:tracking-[0.2em]">FATLUM</span>
+            <span className="mt-1 hidden text-[9px] tracking-[0.32em] text-stone min-[420px]:block">JEWELRY</span>
           </span>
         </Link>
         <nav className="hidden items-center xl:flex" aria-label="Main">
@@ -161,7 +165,6 @@ export function Header({ l }: { l: Locale }) {
           <Link className={`${desk} ${current(`/${l}/kontakt`)}`} href={`/${l}/kontakt`} onMouseEnter={() => setOpen(null)}>{t.nav.contact}</Link>
         </nav>
         <div className="flex items-center gap-1">
-          <LangSwitch l={l} className="xl:hidden" />
           <CartBadge label={t.nav.request} href={`/${l}/anfrage`} />
           <button
             ref={menuBtn}

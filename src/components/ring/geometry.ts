@@ -47,38 +47,117 @@ function solid(positions: number[]) {
   return geo;
 }
 
-/** Round brilliant in a unit box: girdle diameter 1, table up, y up. */
+/** Keep each triangle facing outward so flat shading reads as a facet. */
+function pushOut(out: number[], a: THREE.Vector3, b: THREE.Vector3, c: THREE.Vector3) {
+  const n = b.clone().sub(a).cross(c.clone().sub(a));
+  const mid = a.clone().add(b).add(c);
+  if (n.dot(mid) < 0) pushFace(out, a, c, b);
+  else pushFace(out, a, b, c);
+}
+
+/**
+ * Round brilliant, girdle diameter 1, table up.
+ * Crown: table, 8 stars, 8 bezels. Pavilion: 16 lower facets to a culet.
+ */
 export function roundBrilliant() {
   const R = 0.5;
+  const tableR = R * 0.54;
+  const crownY = 0.168;
+  const breakY = 0.078;
+  const breakR = R * 0.86;
+  const gTop = 0.014;
+  const gBot = -0.016;
+  const pavBreakY = -0.22;
+  const pavBreakR = R * 0.34;
+  const culetY = -0.43;
+  const N = 8;
   const out: number[] = [];
-  const table = ringOf(8, R * 0.56, 0.16, Math.PI / 8);
-  const crown = ringOf(16, R, 0.02);
-  const girdle = ringOf(16, R, -0.02);
-  const mid = ringOf(8, R * 0.42, -0.28);
-  const culet = V(0, -0.44, 0);
-  fan(out, V(0, 0.16, 0), table);
-  for (let i = 0; i < 8; i++) {
+  const table: THREE.Vector3[] = [];
+  const stars: THREE.Vector3[] = [];
+  const upper: THREE.Vector3[] = [];
+  const lower: THREE.Vector3[] = [];
+  const pav: THREE.Vector3[] = [];
+  for (let i = 0; i < N; i++) {
+    const a = (i / N) * Math.PI * 2;
+    const mid = a + Math.PI / N;
+    table.push(V(Math.cos(mid) * tableR, crownY, Math.sin(mid) * tableR));
+    stars.push(V(Math.cos(a) * breakR, breakY, Math.sin(a) * breakR));
+    pav.push(V(Math.cos(a) * pavBreakR, pavBreakY, Math.sin(a) * pavBreakR));
+  }
+  for (let i = 0; i < N * 2; i++) {
+    const a = (i / (N * 2)) * Math.PI * 2;
+    upper.push(V(Math.cos(a) * R, gTop, Math.sin(a) * R));
+    lower.push(V(Math.cos(a) * R, gBot, Math.sin(a) * R));
+  }
+  const tableCenter = V(0, crownY + 0.001, 0);
+  const culet = V(0, culetY, 0);
+  for (let i = 0; i < N; i++) pushOut(out, tableCenter, table[i]!, table[(i + 1) % N]!);
+  for (let i = 0; i < N; i++) {
     const t0 = table[i]!;
-    const t1 = table[(i + 1) % 8]!;
-    const g0 = crown[i * 2]!;
-    const g1 = crown[i * 2 + 1]!;
-    const g2 = crown[(i * 2 + 2) % 16]!;
-    pushFace(out, t0, g1, t1);
-    pushFace(out, t0, g0, g1);
-    pushFace(out, t1, g1, g2);
+    const t1 = table[(i + 1) % N]!;
+    const star = stars[i]!;
+    const starNext = stars[(i + 1) % N]!;
+    const gL = upper[(i * 2) % (N * 2)]!;
+    const gM = upper[(i * 2 + 1) % (N * 2)]!;
+    const gR = upper[(i * 2 + 2) % (N * 2)]!;
+    pushOut(out, t0, star, t1);
+    pushOut(out, t0, gL, star);
+    pushOut(out, star, gL, gM);
+    pushOut(out, t1, star, gM);
+    pushOut(out, t1, gM, gR);
+    pushOut(out, star, gR, starNext);
   }
-  bridge(out, crown, girdle);
-  for (let i = 0; i < 8; i++) {
-    const a = girdle[i * 2]!;
-    const b = girdle[i * 2 + 1]!;
-    const c = girdle[(i * 2 + 2) % 16]!;
-    const m = mid[i]!;
-    const n = mid[(i + 1) % 8]!;
-    pushFace(out, a, m, b);
-    pushFace(out, b, m, c);
-    pushFace(out, m, n, c);
+  for (let i = 0; i < N * 2; i++) {
+    const u0 = upper[i]!;
+    const u1 = upper[(i + 1) % (N * 2)]!;
+    const l0 = lower[i]!;
+    const l1 = lower[(i + 1) % (N * 2)]!;
+    pushOut(out, u0, u1, l1);
+    pushOut(out, u0, l1, l0);
   }
-  fan(out, culet, mid, true);
+  for (let i = 0; i < N; i++) {
+    const a = lower[i * 2]!;
+    const b = lower[i * 2 + 1]!;
+    const c = lower[(i * 2 + 2) % (N * 2)]!;
+    const p = pav[i]!;
+    const q = pav[(i + 1) % N]!;
+    pushOut(out, a, p, b);
+    pushOut(out, b, p, c);
+    pushOut(out, p, q, c);
+    pushOut(out, p, culet, q);
+  }
+  return solid(out);
+}
+
+/** Tapered claw that hooks over a unit-girdle stone. Sits on +X and is rotated into place. */
+export function clawGeometry() {
+  const out: number[] = [];
+  const rings = [
+    { x: 0.58, y: -0.34, r: 0.055 },
+    { x: 0.54, y: -0.16, r: 0.04 },
+    { x: 0.51, y: 0.0, r: 0.03 },
+    { x: 0.49, y: 0.1, r: 0.022 },
+    { x: 0.42, y: 0.16, r: 0.02 },
+    { x: 0.36, y: 0.2, r: 0.032 },
+  ];
+  const sides = 8;
+  const circles = rings.map((ring) => Array.from({ length: sides }, (_, i) => {
+    const a = (i / sides) * Math.PI * 2;
+    return V(ring.x, ring.y + Math.sin(a) * ring.r, Math.cos(a) * ring.r);
+  }));
+  for (let s = 0; s < circles.length - 1; s++) {
+    for (let i = 0; i < sides; i++) {
+      const a = circles[s]![i]!;
+      const b = circles[s]![(i + 1) % sides]!;
+      const c = circles[s + 1]![i]!;
+      const d = circles[s + 1]![(i + 1) % sides]!;
+      pushOut(out, a, b, c);
+      pushOut(out, b, d, c);
+    }
+  }
+  const tip = V(0.33, 0.23, 0);
+  const last = circles[circles.length - 1]!;
+  for (let i = 0; i < sides; i++) pushOut(out, last[i]!, last[(i + 1) % sides]!, tip);
   return solid(out);
 }
 
@@ -121,19 +200,29 @@ export function pearBrilliant() {
 }
 
 export function princessCut() {
-  const s = 0.46;
-  const table = 0.26;
-  const crown = 0.18;
-  const pav = -0.42;
-  const t = [V(-table, crown, -table), V(table, crown, -table), V(table, crown, table), V(-table, crown, table)];
-  const g = [V(-s, 0.02, -s), V(s, 0.02, -s), V(s, 0.02, s), V(-s, 0.02, s)];
-  const b = [V(-s, -0.02, -s), V(s, -0.02, -s), V(s, -0.02, s), V(-s, -0.02, s)];
-  const culet = V(0, pav, 0);
+  const crown = 0.16;
   const out: number[] = [];
-  fan(out, V(0, crown, 0), t);
-  bridge(out, t, g);
-  bridge(out, g, b);
-  fan(out, culet, b, true);
+  const sq = (half: number, y: number) => [
+    V(-half, y, -half), V(half, y, -half), V(half, y, half), V(-half, y, half),
+  ];
+  const table = sq(0.22, crown);
+  const brk = sq(0.36, crown * 0.42);
+  const girdle = sq(0.48, 0.012);
+  const lower = sq(0.48, -0.012);
+  const pav = sq(0.2, -0.24);
+  const culet = V(0, -0.42, 0);
+  for (let i = 0; i < 4; i++) pushOut(out, V(0, crown, 0), table[i]!, table[(i + 1) % 4]!);
+  for (let i = 0; i < 4; i++) {
+    pushOut(out, table[i]!, brk[i]!, table[(i + 1) % 4]!);
+    pushOut(out, table[(i + 1) % 4]!, brk[i]!, brk[(i + 1) % 4]!);
+    pushOut(out, brk[i]!, girdle[i]!, brk[(i + 1) % 4]!);
+    pushOut(out, brk[(i + 1) % 4]!, girdle[i]!, girdle[(i + 1) % 4]!);
+    pushOut(out, girdle[i]!, lower[i]!, girdle[(i + 1) % 4]!);
+    pushOut(out, lower[(i + 1) % 4]!, lower[i]!, girdle[(i + 1) % 4]!);
+    pushOut(out, lower[i]!, pav[i]!, lower[(i + 1) % 4]!);
+    pushOut(out, lower[(i + 1) % 4]!, pav[i]!, pav[(i + 1) % 4]!);
+    pushOut(out, pav[i]!, culet, pav[(i + 1) % 4]!);
+  }
   return solid(out);
 }
 
@@ -211,13 +300,6 @@ export function caratDiameter(carat: number) {
   return 6.5 * Math.cbrt(Math.max(0.25, carat));
 }
 
-export function shapeScale(shape: string): [number, number, number] {
-  switch (shape) {
-    case "oval": return [0.82, 0.9, 1.22];
-    case "pear": return [0.8, 0.88, 1.2];
-    case "emerald": return [0.92, 0.86, 1.15];
-    case "princess": return [0.96, 1.02, 0.96];
-    case "cushion": return [1.02, 0.94, 1.02];
-    default: return [1, 1, 1];
-  }
+export function shapeScale(_shape: string): [number, number, number] {
+  return [1, 1, 1];
 }

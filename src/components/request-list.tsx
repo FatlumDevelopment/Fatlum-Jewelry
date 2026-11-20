@@ -32,7 +32,7 @@ export function RequestList({ l }: { l: Locale }) {
           const detail = l === "en" ? item.detail_en : item.detail_de;
           return (
             <li key={item.key} className="grid grid-cols-[6.5rem_1fr] gap-4 py-6 sm:grid-cols-[8rem_1fr_auto]">
-              <div className="bg-[#f7f4ef]">
+              <div className="bg-paper">
                 {item.kind === "product" && item.glyph && item.tone && item.slug ? (
                   <ProductVisual slug={item.slug} glyph={item.glyph} tone={item.tone} alt="" locale={l} ratio="aspect-square" sizes={imageSizes.thumb} />
                 ) : (

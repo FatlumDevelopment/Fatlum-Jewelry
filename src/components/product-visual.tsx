@@ -25,7 +25,7 @@ export function ProductVisual({
   const photo = productPhoto[slug];
   if (!photo) {
     return (
-      <div className={`overflow-hidden bg-[#f7f4ef] ${ratio}`}>
+      <div className={`overflow-hidden bg-paper ${ratio}`}>
         <ProductGlyph uid={`vis-${slug}`} kind={glyph} tone={tone} title={alt} />
       </div>
     );

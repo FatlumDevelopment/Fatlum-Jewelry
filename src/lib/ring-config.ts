@@ -1,13 +1,13 @@
 import type { Locale, RingConfig } from "./types";
 
 export const METALS = [
-  { code: "yg585", group: "yellow", fineness: "585", color: "#d4a24a", roughness: 0.2, de: "Gelbgold", en: "Yellow gold" },
-  { code: "yg750", group: "yellow", fineness: "750", color: "#e8c878", roughness: 0.16, de: "Gelbgold", en: "Yellow gold" },
-  { code: "wg585", group: "white", fineness: "585", color: "#d5d2cc", roughness: 0.18, de: "Weißgold", en: "White gold" },
-  { code: "wg750", group: "white", fineness: "750", color: "#f4f2ee", roughness: 0.14, de: "Weißgold", en: "White gold" },
-  { code: "rg585", group: "rose", fineness: "585", color: "#d9a08c", roughness: 0.2, de: "Roségold", en: "Rose gold" },
-  { code: "rg750", group: "rose", fineness: "750", color: "#e8bba8", roughness: 0.16, de: "Roségold", en: "Rose gold" },
-  { code: "pt950", group: "platinum", fineness: "950", color: "#eeeff1", roughness: 0.12, de: "Platin", en: "Platinum" },
+  { code: "yg585", group: "yellow", fineness: "585", color: "#c9962e", roughness: 0.24, de: "Gelbgold", en: "Yellow gold" },
+  { code: "yg750", group: "yellow", fineness: "750", color: "#e6c56a", roughness: 0.18, de: "Gelbgold", en: "Yellow gold" },
+  { code: "wg585", group: "white", fineness: "585", color: "#cfcbc4", roughness: 0.22, de: "Weißgold", en: "White gold" },
+  { code: "wg750", group: "white", fineness: "750", color: "#eceae6", roughness: 0.16, de: "Weißgold", en: "White gold" },
+  { code: "rg585", group: "rose", fineness: "585", color: "#c98474", roughness: 0.24, de: "Roségold", en: "Rose gold" },
+  { code: "rg750", group: "rose", fineness: "750", color: "#e0aa98", roughness: 0.18, de: "Roségold", en: "Rose gold" },
+  { code: "pt950", group: "platinum", fineness: "950", color: "#e7e8ea", roughness: 0.14, de: "Platin", en: "Platinum" },
 ] as const;
 
 export const SHAPES = [

@@ -1,5 +1,5 @@
 /** Studio ground used when the photographs were normalized. Keep card backgrounds on this exact color. */
-export const STUDIO = "#f7f4ef";
+export const STUDIO = "#f3f0ea";
 
 export type JewelryId =
   | "wedding-rings-yellow-gold"
@@ -34,7 +34,7 @@ const file = (id: string, width: number, height: number, alt_de: string, alt_en:
   alt_en,
 });
 
-/** Central map. Sources are original studio photographs, normalized onto #f7f4ef and stored as WebP. Next serves AVIF when the browser accepts it. */
+/** Central map. Sources are original studio photographs, normalized onto #f3f0ea and stored as WebP. Next serves AVIF when the browser accepts it. */
 export const jewelryImages: Record<JewelryId, JewelryImage> = {
   "wedding-rings-yellow-gold": file("wedding-rings-yellow-gold", 1024, 1024, "Polierte Trauringe aus Gelbgold, Studioaufnahme", "Polished yellow-gold wedding bands, studio photograph"),
   "wedding-rings-white-gold": file("wedding-rings-white-gold", 1024, 1024, "Polierte Trauringe aus Weißgold, Studioaufnahme", "Polished white-gold wedding bands, studio photograph"),

@@ -17,7 +17,7 @@ export function RingStage({ config, view, label, fallbackId }: { config: RingCon
   const [ready, setReady] = useState(false);
   const still = <RingFallback id={fallbackId} label={label} />;
   return (
-    <div className="relative h-full w-full bg-[#f7f4ef]">
+    <div className="relative h-full w-full bg-paper">
       <Boundary fallback={still}>
         <div className={ready ? "h-full w-full" : "h-full w-full opacity-0"} aria-hidden={ready ? true : undefined}>
           <CanvasStage config={config} view={view} onReady={() => setReady(true)} />

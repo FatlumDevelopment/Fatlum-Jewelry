@@ -6,7 +6,7 @@ import { StudioFrame } from "@/components/studio-image";
 import { getProducts } from "@/lib/catalog";
 import { guideIndex } from "@/lib/content";
 import { dict } from "@/lib/i18n";
-import { imageSizes } from "@/lib/image-slots";
+import { categoryPhoto, imageSizes, type JewelryId } from "@/lib/image-slots";
 import { takeLocale } from "@/lib/locale";
 import { SITE, pageMeta } from "@/lib/seo";
 import { CONTACT } from "@/lib/site";
@@ -37,30 +37,34 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   return (
     <Shell l={locale} wide>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <section className="grid items-end gap-8 pb-8 pt-8 md:pt-14 lg:grid-cols-12 lg:gap-10 lg:pb-12" data-testid="home-hero">
-        <div className="lg:col-span-5">
-          <p className="text-[11px] uppercase tracking-[0.22em] text-metal">{t.hero.kicker}</p>
-          <h1 className="mt-4 font-serif text-[2.75rem] leading-[0.98] tracking-[-0.03em] sm:text-6xl lg:text-7xl">{t.hero.title}</h1>
-          <p className="mt-5 max-w-md text-[15px] leading-relaxed text-stone md:text-base">{t.hero.text}</p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link className="btn btn-solid" href={`/${locale}/konfigurator`}>{t.hero.ctaConfig}</Link>
-            <Link className="btn btn-line" href={`/${locale}/kollektion/trauringe`}>{t.hero.ctaRings}</Link>
-          </div>
+      <section className="grid items-center gap-8 pb-6 pt-2 lg:min-h-[78vh] lg:grid-cols-12 lg:gap-16 lg:pb-16 lg:pt-16" data-testid="home-hero">
+        <div className="order-1 lg:order-2 lg:col-span-7">
+          <StudioFrame id="hero-rings" locale={locale} sizes={imageSizes.hero} priority ratio="aspect-[5/4] sm:aspect-[4/3] lg:aspect-[4/5] lg:min-h-[70vh]" />
         </div>
-        <div className="lg:col-span-7">
-          <StudioFrame id="hero-rings" locale={locale} sizes={imageSizes.hero} priority ratio="aspect-video" />
+        <div className="order-2 lg:order-1 lg:col-span-5 lg:py-10">
+          <p className="text-[11px] uppercase tracking-[0.22em] text-metal">{t.hero.kicker}</p>
+          <h1 className="mt-4 font-serif text-[2.6rem] leading-[0.98] tracking-[-0.03em] sm:text-6xl lg:text-7xl">{t.hero.title}</h1>
+          <p className="mt-5 max-w-md text-[15px] leading-relaxed text-stone md:text-base">{t.hero.text}</p>
+          <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-3">
+            <Link className="inline-flex min-h-11 items-center border-b border-ink text-[11px] uppercase tracking-[0.18em]" href={`/${locale}/konfigurator`}>{t.hero.ctaConfig}</Link>
+            <Link className="inline-flex min-h-11 items-center border-b border-line text-[11px] uppercase tracking-[0.18em] text-stone" href={`/${locale}/kollektion/trauringe`}>{t.hero.ctaRings}</Link>
+          </div>
         </div>
       </section>
 
       <ul className="border-t border-line">
-        {t.landing.rows.map(([title, note, href]) => (
-          <li key={href} className="border-b border-line">
-            <Link href={`/${locale}${href}`} className="flex min-h-16 flex-col justify-center gap-1 py-5 sm:flex-row sm:items-baseline sm:justify-between">
-              <span className="font-serif text-3xl sm:text-4xl md:text-5xl">{title}</span>
-              <span className="text-[11px] uppercase tracking-[0.16em] text-stone">{note}</span>
-            </Link>
-          </li>
-        ))}
+        {t.landing.rows.map(([title, note, href]) => {
+          const thumb = (href === "/konfigurator" ? "hero-ring-macro" : categoryPhoto[href.split("/").pop() || ""]) as JewelryId | undefined;
+          return (
+            <li key={href} className="border-b border-line">
+              <Link href={`/${locale}${href}`} className="group flex min-h-20 items-center gap-4 py-4 sm:gap-6 sm:py-5">
+                {thumb ? <span className="relative block h-16 w-16 shrink-0 overflow-hidden sm:h-20 sm:w-24"><StudioFrame id={thumb} locale={locale} alt="" sizes="96px" ratio="h-full w-full" /></span> : null}
+                <span className="min-w-0 flex-1 font-serif text-3xl leading-none sm:text-4xl md:text-5xl">{title}</span>
+                <span className="hidden text-[11px] uppercase tracking-[0.16em] text-stone sm:block">{note}</span>
+              </Link>
+            </li>
+          );
+        })}
       </ul>
 
       <section className="mt-16 md:mt-24">
