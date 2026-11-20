@@ -101,19 +101,19 @@ export function Header({ l }: { l: Locale }) {
   const current = (href: string) => (path === href ? "text-ink" : "");
 
   const menu = mobile ? (
-        <div ref={panel} id={menuId} role="dialog" aria-modal="true" aria-label={t.menu} className="fixed inset-0 z-50 overflow-y-auto bg-ivory xl:hidden">
-          <div className="flex h-16 items-center justify-between border-b border-line px-5">
+        <div ref={panel} id={menuId} role="dialog" aria-modal="true" aria-label={t.menu} className="fixed inset-0 z-[80] overflow-y-auto bg-ivory xl:hidden">
+          <div className="sticky top-0 flex h-16 items-center justify-between border-b border-line bg-ivory px-5">
             <span className="font-serif text-xl tracking-[0.22em]">FATLUM</span>
-            <button ref={closeBtn} type="button" className="inline-flex min-h-11 items-center px-2 text-[11px] uppercase tracking-[0.18em]" onClick={() => setMobile(false)}>{t.close}</button>
+            <button ref={closeBtn} type="button" className="inline-flex min-h-11 items-center border border-ink px-3 text-[11px] uppercase tracking-[0.18em]" onClick={() => setMobile(false)}>{t.close}</button>
           </div>
-          <nav className="px-5 pb-16" aria-label="Mobile">
+          <nav className="px-5 pb-24" aria-label="Mobile">
             <p className="mt-6 text-[11px] uppercase tracking-[0.2em] text-stone">{t.nav.rings}</p>
             {ringLinks.map((link) => (
-              <Link key={link.href} href={link.href} className="block border-b border-line py-4 font-serif text-[2rem] leading-none">{link.label}</Link>
+              <Link key={link.href} href={link.href} className="flex min-h-14 items-center border-b border-line font-serif text-[1.75rem] leading-none">{link.label}</Link>
             ))}
             <p className="mt-8 text-[11px] uppercase tracking-[0.2em] text-stone">{t.nav.jewelry}</p>
             {jewelLinks.map((link) => (
-              <Link key={link.href} href={link.href} className="block border-b border-line py-4 font-serif text-[2rem] leading-none">{link.label}</Link>
+              <Link key={link.href} href={link.href} className="flex min-h-14 items-center border-b border-line font-serif text-[1.75rem] leading-none">{link.label}</Link>
             ))}
             <div className="mt-8 grid gap-1">
               <Link href={`/${l}/konfigurator`} className="inline-flex min-h-12 items-center font-serif text-2xl">{t.nav.configurator}</Link>

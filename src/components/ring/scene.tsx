@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, type RefObject } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
@@ -53,20 +53,48 @@ function useEngraving(text: string) {
   }, [text]);
 }
 
-function CameraRig({ view }: { view: "out" | "in" }) {
-  const camera = useThree((s) => s.camera);
-  const controls = useThree((s) => s.controls) as { target: THREE.Vector3; update: () => void } | null;
-  const desired = view === "in" ? [0, 2, 22] : [26, 14, 36];
-  const lookAt = view === "in" ? [0, -1, 0] : [0, 2, 0];
+function FitView({ view, root, revision }: { view: "out" | "in"; root: RefObject<THREE.Group | null>; revision: string }) {
+  const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
+  const viewport = useThree((s) => s.size);
+  const controls = useThree((s) => s.controls) as { target: THREE.Vector3; update: () => void; minDistance: number; maxDistance: number } | null;
   useEffect(() => {
-    camera.position.set(desired[0], desired[1], desired[2]);
-    if (controls) {
-      controls.target.set(lookAt[0], lookAt[1], lookAt[2]);
-      controls.update();
-    } else {
-      camera.lookAt(lookAt[0], lookAt[1], lookAt[2]);
-    }
-  }, [camera, controls, view]);
+    let frame = 0;
+    const fit = () => {
+      const group = root.current;
+      if (!group) return;
+      group.updateWorldMatrix(true, true);
+      const box = new THREE.Box3().setFromObject(group);
+      if (box.isEmpty()) return;
+      const center = box.getCenter(new THREE.Vector3());
+      const dims = box.getSize(new THREE.Vector3());
+      const aspect = viewport.width / Math.max(viewport.height, 1);
+      const vFov = THREE.MathUtils.degToRad(camera.fov);
+      const hFov = 2 * Math.atan(Math.tan(vFov / 2) * aspect);
+      const distV = (dims.y / 2) / Math.tan(vFov / 2);
+      const distH = (dims.x / 2) / Math.tan(hFov / 2);
+      const padding = view === "in" ? 1.15 : 1.42;
+      const dist = Math.max(distV, distH, dims.z * 0.65) * padding;
+      const dir = view === "in"
+        ? new THREE.Vector3(0, 0.2, 1)
+        : new THREE.Vector3(0.7, 0.32, 0.95);
+      dir.normalize();
+      const look = view === "in" ? center.clone().add(new THREE.Vector3(0, -dims.y * 0.2, 0)) : center;
+      camera.position.copy(look).add(dir.multiplyScalar(dist));
+      camera.near = Math.max(0.05, dist / 80);
+      camera.far = dist * 40;
+      camera.updateProjectionMatrix();
+      if (controls) {
+        controls.minDistance = Math.max(2, dist * 0.5);
+        controls.maxDistance = dist * 3;
+        controls.target.copy(look);
+        controls.update();
+      } else {
+        camera.lookAt(look);
+      }
+    };
+    frame = requestAnimationFrame(() => { fit(); frame = requestAnimationFrame(fit); });
+    return () => cancelAnimationFrame(frame);
+  }, [camera, controls, revision, root, view, viewport.height, viewport.width]);
   return null;
 }
 
@@ -74,14 +102,19 @@ function Stones({ config, diameter, metalColor }: { config: RingConfig; diameter
   const geo = useMemo(() => gemGeometry(config.shape), [config.shape]);
   const small = useMemo(() => gemGeometry("round"), []);
   const mat = useMemo(() => new THREE.MeshPhysicalMaterial({
-    color: "#f7f9fc",
-    metalness: 0.05,
-    roughness: 0.18,
-    clearcoat: 1,
-    clearcoatRoughness: 0.12,
+    color: "#f4f7fb",
+    metalness: 0,
+    roughness: 0.04,
+    transmission: 1,
+    thickness: 1.8,
+    ior: 2.42,
     flatShading: true,
-    envMapIntensity: 1.6,
-    side: THREE.DoubleSide,
+    envMapIntensity: 2.2,
+    clearcoat: 1,
+    clearcoatRoughness: 0.08,
+    attenuationColor: "#e7eef8",
+    attenuationDistance: 4,
+    side: THREE.FrontSide,
   }), []);
   useEffect(() => () => mat.dispose(), [mat]);
   const [sx, sy, sz] = shapeScale(config.shape);
@@ -142,6 +175,7 @@ export function RingScene({ config, view }: { config: RingConfig; view: "out" | 
   const group = useRef<THREE.Group>(null);
   const tex = useEngraving(config.engraving);
   useEffect(() => () => tex?.dispose(), [tex]);
+  const ringRef = useRef<THREE.Group>(null);
   const shadow = useMemo(() => {
     const canvas = document.createElement("canvas");
     canvas.width = 128;
@@ -176,13 +210,13 @@ export function RingScene({ config, view }: { config: RingConfig; view: "out" | 
   return (
     <>
       <Studio />
-      <CameraRig view={view} />
+      <FitView view={view} root={ringRef} revision={`${config.mode}-${config.size_mm}-${config.width_mm}-${config.carat}-${config.shape}-${config.setting}`} />
       <ambientLight intensity={0.35} />
       <hemisphereLight args={["#f4f7ff", "#c4b39a", 0.6]} />
       <directionalLight position={[8, 14, 8]} intensity={2.4} color="#fff6ea" />
       <directionalLight position={[-10, 6, -6]} intensity={0.7} color="#e4ecf8" />
       <spotLight position={[0, 18, 10]} intensity={12} angle={0.55} penumbra={0.85} />
-      <group rotation={[0.15, -0.35, 0]}>
+      <group ref={ringRef} rotation={[0.22, -0.55, 0]}>
         <group rotation={[Math.PI / 2, 0, 0]}>
           <mesh geometry={band} material={metalMat} />
           {config.mode === "finished" && tex && (
@@ -211,7 +245,7 @@ export function RingScene({ config, view }: { config: RingConfig; view: "out" | 
         <planeGeometry args={[outer * 3.2, outer * 3.2]} />
         <meshBasicMaterial map={shadow} transparent depthWrite={false} />
       </mesh>
-      <OrbitControls makeDefault enablePan={false} enableDamping minDistance={22} maxDistance={80} target={[0, 7, 0]} />
+      <OrbitControls makeDefault enablePan={false} enableDamping minDistance={4} maxDistance={80} />
     </>
   );
 }

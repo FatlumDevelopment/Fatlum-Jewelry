@@ -76,7 +76,7 @@ export function Configurator({ l, initialMode }: { l: Locale; initialMode: RingC
       </header>
       <div className="lg:grid lg:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)] lg:items-start lg:gap-14">
         <div className="sticky top-16 z-20 -mx-5 bg-paper px-5 pb-3 lg:top-28 lg:mx-0 lg:px-0">
-          <div className="relative h-[300px] sm:h-[380px] lg:h-[calc(100vh-9rem)]">
+          <div className="relative h-[320px] sm:h-[420px] lg:h-[min(720px,calc(100vh-9rem))]">
             <RingStage
               config={ring}
               view={view}
