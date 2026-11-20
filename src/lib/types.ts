@@ -146,6 +146,17 @@ export type ConfigPayload = {
   rings: RingDraft[];
 };
 
+export type RingConfig = {
+  mode: "finished" | "blank";
+  metal: string;
+  shape: string;
+  carat: number;
+  setting: string;
+  size_mm: number;
+  width_mm: number;
+  engraving: string;
+};
+
 export type CartLine = {
   key: string;
   kind: "product" | "configuration";
@@ -158,5 +169,5 @@ export type CartLine = {
   detail_en: string;
   glyph?: GlyphKind;
   tone?: MetalTone;
-  payload?: ConfigPayload;
+  payload?: RingConfig;
 };
