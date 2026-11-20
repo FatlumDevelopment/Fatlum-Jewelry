@@ -115,10 +115,10 @@ export function roundBrilliant() {
 /** Slim round prong along +X. The tip curls in over a unit girdle. */
 export function prongGeometry() {
   const curve = new THREE.CatmullRomCurve3([
-    V(0.5, -0.22, 0),
-    V(0.56, -0.06, 0),
-    V(0.54, 0.03, 0),
-    V(0.45, 0.07, 0),
+    V(0.28, -0.36, 0),
+    V(0.42, -0.16, 0),
+    V(0.55, -0.02, 0),
+    V(0.46, 0.07, 0),
   ]);
   return new THREE.TubeGeometry(curve, 18, 0.042, 10, false);
 }
@@ -126,16 +126,15 @@ export function prongGeometry() {
 /** Cup under the stone. Pavilion sits inside it; the rim is just under the girdle. */
 export function galleryGeometry() {
   const pts = [
-    new THREE.Vector2(0.1, -0.52),
-    new THREE.Vector2(0.16, -0.4),
-    new THREE.Vector2(0.28, -0.26),
-    new THREE.Vector2(0.4, -0.12),
-    new THREE.Vector2(0.52, -0.02),
-    new THREE.Vector2(0.56, 0.02),
-    new THREE.Vector2(0.52, 0.0),
-    new THREE.Vector2(0.36, -0.1),
-    new THREE.Vector2(0.2, -0.28),
-    new THREE.Vector2(0.1, -0.52),
+    new THREE.Vector2(0.08, -0.54),
+    new THREE.Vector2(0.14, -0.42),
+    new THREE.Vector2(0.26, -0.28),
+    new THREE.Vector2(0.4, -0.14),
+    new THREE.Vector2(0.5, -0.02),
+    new THREE.Vector2(0.46, 0.015),
+    new THREE.Vector2(0.22, -0.16),
+    new THREE.Vector2(0.1, -0.36),
+    new THREE.Vector2(0.08, -0.54),
   ];
   const geo = new THREE.LatheGeometry(pts, 48);
   geo.computeVertexNormals();

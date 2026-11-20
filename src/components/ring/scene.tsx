@@ -193,7 +193,7 @@ export function RingScene({ config, view, bounces, smallBounces }: { config: Rin
   const pave = useMemo(() => {
     if (config.mode !== "finished" || config.setting !== "pave" || diameter <= 0) return [];
     const melee = 1.15;
-    const radius = outer + melee * 0.02;
+    const radius = outer - melee * 0.08;
     const clear = Math.asin(Math.min(0.9, (diameter * 0.62) / radius));
     const step = (melee + 0.22) / radius;
     const stones: { position: [number, number, number]; quaternion: THREE.Quaternion }[] = [];
