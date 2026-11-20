@@ -76,20 +76,20 @@ export function Configurator({ l, initialMode }: { l: Locale; initialMode: RingC
       </header>
       <div className="lg:grid lg:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)] lg:items-start lg:gap-14">
         <div className="sticky top-16 z-20 -mx-5 bg-paper px-5 pb-3 lg:top-28 lg:mx-0 lg:px-0">
-          <div className="relative h-[320px] sm:h-[420px] lg:h-[min(720px,calc(100vh-9rem))]">
+          <div className="relative h-[340px] sm:h-[440px] lg:h-[min(680px,calc(100vh-11rem))]">
             <RingStage
               config={ring}
               view={view}
               label={summary}
               fallbackId={ring.mode === "blank" ? "ring-blanks" : "engagement-ring-solitaire"}
             />
-            <div className="absolute right-3 top-3 flex gap-2">
-              {(["out", "in"] as const).map((item) => (
-                <button key={item} type="button" aria-pressed={view === item} onClick={() => setView(item)} className={`min-h-11 px-3 text-[11px] uppercase tracking-[0.14em] ${view === item ? "bg-ink text-ivory" : "bg-white/90 text-ink"}`}>
-                  {item === "in" ? t.config.inside : t.config.outside}
-                </button>
-              ))}
-            </div>
+          </div>
+          <div className="mt-3 flex gap-2">
+            {(["out", "in"] as const).map((item) => (
+              <button key={item} type="button" aria-pressed={view === item} onClick={() => setView(item)} className={`min-h-11 px-4 text-[11px] uppercase tracking-[0.14em] ${view === item ? "bg-ink text-ivory" : "border border-line bg-white text-ink"}`}>
+                {item === "in" ? t.config.inside : t.config.outside}
+              </button>
+            ))}
           </div>
           <p className="mt-3 text-sm text-stone">{t.config.drag}</p>
           <p className="mt-1 text-sm text-stone">{t.config.modelNote}</p>
