@@ -90,11 +90,11 @@ function FitView({ view, root, revision }: { view: "out" | "in"; root: RefObject
       const hFov = 2 * Math.atan(Math.tan(vFov / 2) * aspect);
       const distV = (dims.y / 2) / Math.tan(vFov / 2);
       const distH = (dims.x / 2) / Math.tan(hFov / 2);
-      const padding = view === "in" ? 1.15 : 1.42;
+      const padding = view === "in" ? 1.2 : 1.7;
       const dist = Math.max(distV, distH, dims.z * 0.65) * padding;
       const dir = view === "in"
         ? new THREE.Vector3(0, 0.2, 1)
-        : new THREE.Vector3(0.7, 0.32, 0.95);
+        : new THREE.Vector3(0.85, 0.78, 1.05);
       dir.normalize();
       const look = view === "in" ? center.clone().add(new THREE.Vector3(0, -dims.y * 0.2, 0)) : center;
       camera.position.copy(look).add(dir.multiplyScalar(dist));
@@ -126,17 +126,15 @@ function Stones({ config, diameter, metalColor }: { config: RingConfig; diameter
     transmission: 1,
     thickness: 2.4,
     ior: 2.42,
-    dispersion: 0.25,
-    iridescence: 0.35,
-    iridescenceIOR: 1.4,
-    iridescenceThicknessRange: [100, 400],
+    dispersion: 0.12,
     flatShading: true,
     envMapIntensity: 2.6,
     specularIntensity: 1,
     clearcoat: 1,
     clearcoatRoughness: 0.04,
-    attenuationColor: "#e4eefc",
-    attenuationDistance: 2.5,
+    attenuationColor: "#ffffff",
+    attenuationDistance: 12,
+    side: THREE.DoubleSide,
   }), []);
   useEffect(() => () => mat.dispose(), [mat]);
   const [sx, sy, sz] = shapeScale(config.shape);
