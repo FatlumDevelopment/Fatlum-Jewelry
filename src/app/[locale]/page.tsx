@@ -37,11 +37,11 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   return (
     <Shell l={locale} wide>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <section className="grid items-center gap-8 pb-6 pt-2 lg:min-h-[78vh] lg:grid-cols-12 lg:gap-16 lg:pb-16 lg:pt-16" data-testid="home-hero">
+      <section className="grid items-center gap-8 pb-8 pt-4 lg:h-[calc(100svh-7rem)] lg:grid-cols-12 lg:gap-16 lg:pb-6 lg:pt-0" data-testid="home-hero">
         <div className="order-1 lg:order-2 lg:col-span-7">
-          <StudioFrame id="hero-rings" locale={locale} sizes={imageSizes.hero} priority ratio="aspect-[5/4] sm:aspect-[4/3] lg:aspect-[4/5] lg:min-h-[70vh]" />
+          <StudioFrame id="hero-rings" locale={locale} sizes={imageSizes.hero} priority ratio="aspect-[5/4] sm:aspect-[4/3] lg:aspect-[4/3]" />
         </div>
-        <div className="order-2 lg:order-1 lg:col-span-5 lg:py-10">
+        <div className="order-2 lg:order-1 lg:col-span-5">
           <p className="text-[11px] uppercase tracking-[0.22em] text-metal">{t.hero.kicker}</p>
           <h1 className="mt-4 font-serif text-[2.6rem] leading-[0.98] tracking-[-0.03em] sm:text-6xl lg:text-7xl">{t.hero.title}</h1>
           <p className="mt-5 max-w-md text-[15px] leading-relaxed text-stone md:text-base">{t.hero.text}</p>

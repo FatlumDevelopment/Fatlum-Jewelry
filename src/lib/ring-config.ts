@@ -1,13 +1,13 @@
 import type { Locale, RingConfig } from "./types";
 
 export const METALS = [
-  { code: "yg585", group: "yellow", fineness: "585", color: "#c9962e", roughness: 0.24, de: "Gelbgold", en: "Yellow gold" },
-  { code: "yg750", group: "yellow", fineness: "750", color: "#e6c56a", roughness: 0.18, de: "Gelbgold", en: "Yellow gold" },
-  { code: "wg585", group: "white", fineness: "585", color: "#cfcbc4", roughness: 0.22, de: "Weißgold", en: "White gold" },
-  { code: "wg750", group: "white", fineness: "750", color: "#eceae6", roughness: 0.16, de: "Weißgold", en: "White gold" },
-  { code: "rg585", group: "rose", fineness: "585", color: "#c98474", roughness: 0.24, de: "Roségold", en: "Rose gold" },
-  { code: "rg750", group: "rose", fineness: "750", color: "#e0aa98", roughness: 0.18, de: "Roségold", en: "Rose gold" },
-  { code: "pt950", group: "platinum", fineness: "950", color: "#e7e8ea", roughness: 0.14, de: "Platin", en: "Platinum" },
+  { code: "yg585", group: "yellow", fineness: "585", color: "#d4b06a", roughness: 0.18, de: "Gelbgold", en: "Yellow gold" },
+  { code: "yg750", group: "yellow", fineness: "750", color: "#E6C068", roughness: 0.15, de: "Gelbgold", en: "Yellow gold" },
+  { code: "wg585", group: "white", fineness: "585", color: "#E5E4E2", roughness: 0.16, de: "Weißgold", en: "White gold" },
+  { code: "wg750", group: "white", fineness: "750", color: "#E5E4E2", roughness: 0.14, de: "Weißgold", en: "White gold" },
+  { code: "rg585", group: "rose", fineness: "585", color: "#d9a090", roughness: 0.18, de: "Roségold", en: "Rose gold" },
+  { code: "rg750", group: "rose", fineness: "750", color: "#E8B4A0", roughness: 0.15, de: "Roségold", en: "Rose gold" },
+  { code: "pt950", group: "platinum", fineness: "950", color: "#E5E4E2", roughness: 0.12, de: "Platin", en: "Platinum" },
 ] as const;
 
 export const SHAPES = [
@@ -64,7 +64,7 @@ export function roundMm(n: number) {
 
 export function caratToDiameter(carat: number) {
   const c = Math.min(CARAT_MAX, Math.max(CARAT_MIN, carat));
-  return roundMm(6.5 * Math.cbrt(c));
+  return roundMm(7.4 * Math.cbrt(c));
 }
 
 export function sanitizeEngraving(value: string) {

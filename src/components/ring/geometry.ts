@@ -57,21 +57,37 @@ function pushOut(out: number[], a: THREE.Vector3, b: THREE.Vector3, c: THREE.Vec
 
 /** Faceted round brilliant: flat table, sloping crown, girdle, pavilion. 16 flats. */
 export function roundBrilliant() {
-  const pts = [
-    new THREE.Vector2(0, 0.175),
-    new THREE.Vector2(0.27, 0.175),
-    new THREE.Vector2(0.4, 0.09),
-    new THREE.Vector2(0.5, 0.02),
-    new THREE.Vector2(0.5, -0.02),
-    new THREE.Vector2(0.28, -0.24),
-    new THREE.Vector2(0, -0.42),
-  ];
-  const lathe = new THREE.LatheGeometry(pts, 16);
-  const geo = lathe.toNonIndexed();
-  lathe.dispose();
-  geo.computeVertexNormals();
-  geo.computeBoundingSphere();
-  return geo;
+  const out: number[] = [];
+  const tableR = 0.28;
+  const tableY = 0.18;
+  const girdleR = 0.5;
+  const culetY = -0.42;
+  const crown = 8;
+  const table: THREE.Vector3[] = [];
+  const girdle: THREE.Vector3[] = [];
+  for (let i = 0; i < crown; i++) {
+    const a = (i / crown) * Math.PI * 2;
+    table.push(new THREE.Vector3(Math.cos(a) * tableR, tableY, Math.sin(a) * tableR));
+  }
+  for (let i = 0; i < crown * 2; i++) {
+    const a = (i / (crown * 2)) * Math.PI * 2 + Math.PI / (crown * 2);
+    girdle.push(new THREE.Vector3(Math.cos(a) * girdleR, 0, Math.sin(a) * girdleR));
+  }
+  const culet = new THREE.Vector3(0, culetY, 0);
+  const tri = (a: THREE.Vector3, b: THREE.Vector3, c: THREE.Vector3) => out.push(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z);
+  for (let i = 1; i < crown - 1; i++) tri(table[0], table[i + 1], table[i]);
+  for (let i = 0; i < crown; i++) {
+    const t0 = table[i];
+    const t1 = table[(i + 1) % crown];
+    const g0 = girdle[i * 2];
+    const g1 = girdle[i * 2 + 1];
+    const g2 = girdle[(i * 2 + 2) % girdle.length];
+    tri(t0, g0, g1);
+    tri(t0, g1, t1);
+    tri(t1, g1, g2);
+  }
+  for (let i = 0; i < girdle.length; i++) tri(girdle[(i + 1) % girdle.length], culet, girdle[i]);
+  return solid(out);
 }
 
 /** Tapered claw that hooks over a unit-girdle stone. Sits on +X and is rotated into place. */

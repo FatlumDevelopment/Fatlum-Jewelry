@@ -1,54 +1,23 @@
 "use client";
 import { useEffect, useMemo, useRef, type RefObject } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { ContactShadows, Environment, MeshRefractionMaterial, OrbitControls, useEnvironment } from "@react-three/drei";
 import * as THREE from "three";
+import { cubeUvReflectionFragment } from "./cube-uv-chunk";
+
+(THREE.ShaderChunk as Record<string, string>).cube_uv_reflection_fragment = cubeUvReflectionFragment;
 import { bandGeometry, caratDiameter, clawGeometry, gemGeometry, shapeScale } from "./geometry";
 import { metalByCode } from "@/lib/ring-config";
 import type { RingConfig } from "@/lib/types";
 
-function studioScene() {
-  const room = new THREE.Scene();
-  const panel = (color: string, intensity: number, w: number, h: number, x: number, y: number, z: number, rx = 0, ry = 0) => {
-    const mesh = new THREE.Mesh(
-      new THREE.PlaneGeometry(w, h),
-      new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: intensity, side: THREE.DoubleSide, roughness: 1 }),
-    );
-    mesh.position.set(x, y, z);
-    mesh.rotation.set(rx, ry, 0);
-    room.add(mesh);
-  };
-  panel("#fff8ee", 1.6, 14, 10, 0, 7, 0, -Math.PI / 2, 0);
-  panel("#ffffff", 3.2, 5, 7, 5.5, 2.5, 4, 0, -0.7);
-  panel("#d7e4f4", 1.1, 7, 7, -6, 1.5, 2, 0, 0.8);
-  panel("#fffdf8", 2.4, 3, 4, -1, 3, -6, 0, Math.PI);
-  panel("#c9b59a", 0.35, 16, 16, 0, -5, 0, Math.PI / 2, 0);
-  return room;
-}
+const HDR = "/hdri/studio_softbox_v2.hdr";
 
-function Studio() {
-  const gl = useThree((s) => s.gl);
-  const scene = useThree((s) => s.scene);
-  useEffect(() => {
-    const pmrem = new THREE.PMREMGenerator(gl);
-    const room = studioScene();
-    const tex = pmrem.fromScene(room, 0.02).texture;
-    scene.environment = tex;
-    scene.environmentIntensity = 1.05;
-    pmrem.dispose();
-    return () => {
-      tex.dispose();
-      scene.environment = null;
-      room.traverse((obj) => {
-        const mesh = obj as THREE.Mesh;
-        mesh.geometry?.dispose?.();
-        const mat = mesh.material;
-        if (Array.isArray(mat)) mat.forEach((item) => item.dispose());
-        else mat?.dispose?.();
-      });
-    };
-  }, [gl, scene]);
-  return null;
+function Gem({ geometry, envMap, bounces, scale = 1, position }: { geometry: THREE.BufferGeometry; envMap: THREE.Texture; bounces: number; scale?: number; position?: [number, number, number] }) {
+  return (
+    <mesh geometry={geometry} scale={scale} position={position}>
+      <MeshRefractionMaterial envMap={envMap} bounces={bounces} ior={2.42} aberrationStrength={0.01} fresnel={0.25} fastChroma color="#ffffff" />
+    </mesh>
+  );
 }
 
 function useEngraving(text: string) {
@@ -116,27 +85,9 @@ function FitView({ view, root, revision }: { view: "out" | "in"; root: RefObject
   return null;
 }
 
-function Stones({ config, diameter, metalColor }: { config: RingConfig; diameter: number; metalColor: string }) {
+function Stones({ config, diameter, metalColor, envMap, bounces, smallBounces }: { config: RingConfig; diameter: number; metalColor: string; envMap: THREE.Texture; bounces: number; smallBounces: number }) {
   const geo = useMemo(() => gemGeometry(config.shape), [config.shape]);
   const small = useMemo(() => gemGeometry("round"), []);
-  const mat = useMemo(() => new THREE.MeshPhysicalMaterial({
-    color: "#f7fbff",
-    metalness: 0,
-    roughness: 0.02,
-    transmission: 1,
-    thickness: 2.4,
-    ior: 2.42,
-    dispersion: 0.12,
-    flatShading: true,
-    envMapIntensity: 2.6,
-    specularIntensity: 1,
-    clearcoat: 1,
-    clearcoatRoughness: 0.04,
-    attenuationColor: "#ffffff",
-    attenuationDistance: 12,
-    side: THREE.DoubleSide,
-  }), []);
-  useEffect(() => () => mat.dispose(), [mat]);
   const [sx, sy, sz] = shapeScale(config.shape);
   const claws = useMemo(() => clawGeometry(), []);
   const prongs = config.shape === "round" || config.shape === "oval" ? 6 : config.shape === "pear" ? 3 : 4;
@@ -144,15 +95,13 @@ function Stones({ config, diameter, metalColor }: { config: RingConfig; diameter
   const metal = useMemo(() => new THREE.MeshPhysicalMaterial({
     color: metalColor,
     metalness: 1,
-    roughness: 0.22,
-    envMapIntensity: 1.15,
-    clearcoat: 0.15,
-    clearcoatRoughness: 0.3,
+    roughness: 0.16,
+    envMapIntensity: 1.45,
   }), [metalColor]);
   useEffect(() => () => metal.dispose(), [metal]);
   return (
     <group scale={[diameter * sx, diameter * sy, diameter * sz]}>
-      <mesh geometry={geo} material={mat} castShadow />
+      <Gem geometry={geo} envMap={envMap} bounces={bounces} />
       {Array.from({ length: prongs }, (_, i) => {
         const a = (i / prongs) * Math.PI * 2 + (prongs === 4 ? Math.PI / 4 : prongs === 3 ? -Math.PI / 2 : 0);
         return <mesh key={i} geometry={claws} material={metal} rotation={[0, -a + Math.PI / 2, 0]} />;
@@ -162,7 +111,7 @@ function Stones({ config, diameter, metalColor }: { config: RingConfig; diameter
       </mesh>
       {halo && Array.from({ length: 16 }, (_, i) => {
         const a = (i / 16) * Math.PI * 2;
-        return <mesh key={`h${i}`} geometry={small} material={mat} position={[Math.cos(a) * 0.78, 0.04, Math.sin(a) * 0.78]} scale={0.22} />;
+        return <Gem key={`h${i}`} geometry={small} envMap={envMap} bounces={smallBounces} scale={0.24} position={[Math.cos(a) * 0.78, 0.05, Math.sin(a) * 0.78]} />;
       })}
       {halo && (
         <mesh position={[0, -0.02, 0]} rotation={[Math.PI / 2, 0, 0]} material={metal}>
@@ -173,7 +122,7 @@ function Stones({ config, diameter, metalColor }: { config: RingConfig; diameter
   );
 }
 
-export function RingScene({ config, view }: { config: RingConfig; view: "out" | "in" }) {
+export function RingScene({ config, view, bounces, smallBounces }: { config: RingConfig; view: "out" | "in"; bounces: number; smallBounces: number }) {
   const metal = metalByCode(config.metal);
   const inner = config.size_mm / (2 * Math.PI);
   const width = config.mode === "blank" ? config.width_mm : 1.9;
@@ -185,23 +134,10 @@ export function RingScene({ config, view }: { config: RingConfig; view: "out" | 
     color: metal.color,
     metalness: 1,
     roughness: metal.roughness,
-    envMapIntensity: 1.2,
-    clearcoat: 0.25,
-    clearcoatRoughness: 0.25,
+    envMapIntensity: 1.5,
   }), [metal.color, metal.roughness]);
   useEffect(() => () => metalMat.dispose(), [metalMat]);
-  const gemMat = useMemo(() => new THREE.MeshPhysicalMaterial({
-    color: "#f7fbff",
-    metalness: 0,
-    roughness: 0.02,
-    transmission: 1,
-    thickness: 0.8,
-    ior: 2.42,
-    dispersion: 0.2,
-    flatShading: true,
-    envMapIntensity: 2.4,
-  }), []);
-  useEffect(() => () => gemMat.dispose(), [gemMat]);
+  const envMap = useEnvironment({ files: HDR });
   const color = useMemo(() => new THREE.Color(metal.color), [metal.color]);
   const diameter = config.mode === "finished" ? caratDiameter(config.carat) : 0;
   const scale = useRef(diameter || 1);
@@ -211,20 +147,6 @@ export function RingScene({ config, view }: { config: RingConfig; view: "out" | 
   const ringRef = useRef<THREE.Group>(null);
   const spinning = useRef(true);
   const smallGem = useMemo(() => gemGeometry("round"), []);
-  const shadow = useMemo(() => {
-    const canvas = document.createElement("canvas");
-    canvas.width = 128;
-    canvas.height = 128;
-    const g = canvas.getContext("2d")!;
-    const grd = g.createRadialGradient(64, 64, 10, 64, 64, 62);
-    grd.addColorStop(0, "rgba(28,24,20,0.22)");
-    grd.addColorStop(1, "rgba(28,24,20,0)");
-    g.fillStyle = grd;
-    g.fillRect(0, 0, 128, 128);
-    const map = new THREE.CanvasTexture(canvas);
-    return map;
-  }, []);
-  useEffect(() => () => shadow.dispose(), [shadow]);
 
   useFrame((_, dt) => {
     metalMat.color.lerp(color, 1 - Math.pow(0.001, dt));
@@ -247,13 +169,10 @@ export function RingScene({ config, view }: { config: RingConfig; view: "out" | 
 
   return (
     <>
-      <Studio />
+      <Environment files={HDR} environmentIntensity={1.05} />
       <FitView view={view} root={ringRef} revision={`${config.mode}-${config.size_mm}-${config.width_mm}-${config.carat}-${config.shape}-${config.setting}`} />
-      <ambientLight intensity={0.35} />
-      <hemisphereLight args={["#f4f7ff", "#c4b39a", 0.6]} />
-      <directionalLight position={[8, 14, 8]} intensity={2.4} color="#fff6ea" />
-      <directionalLight position={[-10, 6, -6]} intensity={0.7} color="#e4ecf8" />
-      <spotLight position={[0, 18, 10]} intensity={12} angle={0.55} penumbra={0.85} />
+      <ambientLight intensity={0.25} />
+      <directionalLight position={[6, 10, 8]} intensity={1.4} color="#fff8f0" />
       <group ref={ringRef} rotation={[0.22, -0.55, 0]}>
         <group rotation={[Math.PI / 2, 0, 0]}>
           <mesh geometry={band} material={metalMat} />
@@ -266,20 +185,17 @@ export function RingScene({ config, view }: { config: RingConfig; view: "out" | 
         </group>
         {config.mode === "finished" && (
           <group ref={group} position={[0, outer + diameter * 0.12, 0]}>
-            <Stones config={config} diameter={diameter} metalColor={metal.color} />
+            <Stones config={config} diameter={diameter} metalColor={metal.color} envMap={envMap} bounces={bounces} smallBounces={smallBounces} />
           </group>
         )}
         {config.mode === "finished" && config.setting === "pave" && Array.from({ length: 6 }, (_, i) => {
           const a = paveStart + i * 0.13;
           return [-a, a].map((angle) => (
-            <mesh key={`${i}-${angle}`} geometry={smallGem} material={gemMat} position={[Math.sin(angle) * paveR, Math.cos(angle) * paveR, 0]} scale={1.15} />
+            <Gem key={`${i}-${angle}`} geometry={smallGem} envMap={envMap} bounces={smallBounces} scale={1.25} position={[Math.sin(angle) * paveR, Math.cos(angle) * paveR, 0]} />
           ));
         })}
       </group>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -(outer + 0.4), 0]}>
-        <planeGeometry args={[outer * 3.2, outer * 3.2]} />
-        <meshBasicMaterial map={shadow} transparent depthWrite={false} />
-      </mesh>
+      <ContactShadows position={[0, -(outer + 0.15), 0]} opacity={0.35} scale={outer * 5} blur={2.4} far={outer * 2} color="#3a342c" />
       <OrbitControls makeDefault enablePan={false} enableDamping minDistance={4} maxDistance={80} onStart={() => { spinning.current = false; }} />
     </>
   );
