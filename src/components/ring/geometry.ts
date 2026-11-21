@@ -65,7 +65,7 @@ export function roundBrilliant() {
   const R = 0.5;
   const tableR = R * 0.57;
   const crownH = (R - tableR) * Math.tan((34.5 * Math.PI) / 180);
-  const pavD = R * Math.tan((40.75 * Math.PI) / 180);
+  const pavD = R * Math.tan((40.8 * Math.PI) / 180);
   const starR = tableR + (R - tableR) * 0.55;
   const gTop = 0.012;
   const gBot = -0.012;
@@ -113,31 +113,61 @@ export function roundBrilliant() {
   return solid(out);
 }
 
-/** Slim round prong along +X. The tip curls in over a unit girdle. */
+/** Tapered claw along +X: basket foot, seats on girdle, rounded tip hooks over crown. */
 export function prongGeometry() {
   const curve = new THREE.CatmullRomCurve3([
-    V(0.32, -0.22, 0),
-    V(0.5, -0.04, 0),
-    V(0.53, 0.02, 0),
-    V(0.44, 0.07, 0),
+    V(0.28, -0.26, 0),
+    V(0.38, -0.14, 0),
+    V(0.48, -0.03, 0),
+    V(0.52, 0.018, 0),
+    V(0.49, 0.052, 0),
+    V(0.41, 0.078, 0),
+    V(0.36, 0.065, 0),
   ]);
-  return new THREE.TubeGeometry(curve, 16, 0.026, 8, false);
+  return new THREE.TubeGeometry(curve, 20, 0.024, 10, false);
+}
+
+export function prongCount(shape: string) {
+  return shape === "round" || shape === "oval" ? 6 : 4;
+}
+
+/** Small bearing cup for halo / pavé melee (unit diameter 1). */
+export function meleeSeatGeometry() {
+  const pts = [
+    new THREE.Vector2(0.42, -0.06),
+    new THREE.Vector2(0.48, -0.02),
+    new THREE.Vector2(0.5, 0.01),
+    new THREE.Vector2(0.46, 0.025),
+    new THREE.Vector2(0.38, 0.01),
+    new THREE.Vector2(0.42, -0.06),
+  ];
+  const geo = new THREE.LatheGeometry(pts, 24);
+  geo.computeVertexNormals();
+  return geo;
+}
+
+/** Shared-bead wire between pavé stones. */
+export function paveBeadGeometry() {
+  return new THREE.SphereGeometry(0.07, 10, 8);
 }
 
 /** Cup under the stone. Pavilion sits inside it; the rim is just under the girdle. */
 export function galleryGeometry() {
   const pts = [
-    new THREE.Vector2(0.08, -0.54),
-    new THREE.Vector2(0.14, -0.42),
-    new THREE.Vector2(0.26, -0.28),
-    new THREE.Vector2(0.4, -0.14),
+    new THREE.Vector2(0.06, -0.58),
+    new THREE.Vector2(0.1, -0.48),
+    new THREE.Vector2(0.18, -0.36),
+    new THREE.Vector2(0.3, -0.22),
+    new THREE.Vector2(0.42, -0.1),
     new THREE.Vector2(0.5, -0.02),
-    new THREE.Vector2(0.46, 0.015),
-    new THREE.Vector2(0.22, -0.16),
-    new THREE.Vector2(0.1, -0.36),
-    new THREE.Vector2(0.08, -0.54),
+    new THREE.Vector2(0.48, 0.012),
+    new THREE.Vector2(0.36, -0.04),
+    new THREE.Vector2(0.24, -0.14),
+    new THREE.Vector2(0.14, -0.3),
+    new THREE.Vector2(0.08, -0.46),
+    new THREE.Vector2(0.06, -0.58),
   ];
-  const geo = new THREE.LatheGeometry(pts, 48);
+  const geo = new THREE.LatheGeometry(pts, 56);
   geo.computeVertexNormals();
   return geo;
 }
@@ -257,24 +287,28 @@ export function gemGeometry(shape: string) {
 
 export function bandGeometry(innerRadius: number, width: number, thickness: number) {
   const hw = width / 2;
-  const steps = 18;
+  const steps = 20;
   const pts: THREE.Vector2[] = [];
-  const lift = Math.min(0.28, width * 0.1);
+  const comfort = Math.min(0.34, thickness * 0.14 + width * 0.06);
+  const innerBevel = 0.04;
   for (let i = 0; i <= steps; i++) {
     const t = i / steps;
     const y = -hw + width * t;
     const dome = Math.sin(Math.PI * t);
-    pts.push(new THREE.Vector2(innerRadius + 0.03 + (1 - dome) * lift, y));
+    const r = innerRadius + innerBevel + comfort * (1 - dome);
+    pts.push(new THREE.Vector2(r, y));
   }
-  const cx = innerRadius + thickness * 0.4;
-  const cr = thickness * 0.64;
+  const midR = innerRadius + thickness * 0.52;
+  const crownR = innerRadius + thickness * 0.92;
+  const edgeRound = thickness * 0.22;
   for (let i = 0; i <= steps; i++) {
     const t = i / steps;
     const y = hw - width * t;
-    pts.push(new THREE.Vector2(cx + Math.sin(Math.PI * t) * cr, y));
+    const s = Math.sin(Math.PI * t);
+    pts.push(new THREE.Vector2(midR + s * edgeRound + (1 - s) * (crownR - midR) * 0.35, y));
   }
   pts.push(pts[0]!.clone());
-  const geo = new THREE.LatheGeometry(pts, 256);
+  const geo = new THREE.LatheGeometry(pts, 288);
   geo.computeVertexNormals();
   return geo;
 }
