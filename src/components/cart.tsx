@@ -12,7 +12,7 @@ type Ctx = {
   ready: boolean;
 };
 const C = createContext<Ctx | null>(null);
-const KEY = "fatlum-jewelry-request-list";
+const KEY = "fatlum-jewelry-request-v2";
 const clamp = (q: number) => Math.max(1, Math.min(10, Math.floor(q || 1)));
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
@@ -49,10 +49,9 @@ export function useCart() {
 export function CartBadge({ label, href }: { label: string; href: string }) {
   const { count } = useCart();
   return (
-    <a href={href} className="relative inline-flex items-center gap-2 rounded-full border border-gold/60 px-4 py-2 text-sm text-white transition hover:bg-gold hover:text-navy" data-testid="cart-badge">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><path d="M9 5h11M9 12h11M9 19h11M4 5h.01M4 12h.01M4 19h.01" /></svg>
+    <a href={href} className="inline-flex min-h-11 items-center gap-2 px-2 text-[11px] uppercase tracking-[0.16em] text-ink" data-testid="cart-badge">
       <span className="hidden sm:inline">{label}</span>
-      <span className="min-w-5 rounded-full bg-gold px-1.5 text-center text-xs font-semibold text-navy">{count}</span>
+      <span className="inline-flex h-6 min-w-6 items-center justify-center border border-ink px-1 text-[11px] tracking-normal">{count}</span>
     </a>
   );
 }
@@ -62,10 +61,14 @@ export function AddProductButton({ line, label, addedLabel, qtyLabel }: { line: 
   const [qty, setQty] = useState(1);
   const [done, setDone] = useState(false);
   return (
-    <div className="flex items-stretch gap-2">
-      <label className="sr-only" htmlFor={`qty-${line.slug}`}>{qtyLabel}</label>
-      <input id={`qty-${line.slug}`} type="number" min={1} max={10} value={qty} onChange={(e) => setQty(Number(e.target.value))} className="w-16 rounded border border-gray-300 px-2 text-center" />
-      <button type="button" onClick={() => { add({ ...line, key: line.slug || crypto.randomUUID(), qty }); setDone(true); window.setTimeout(() => setDone(false), 1400); }} className="flex-1 rounded bg-navy px-3 py-2 text-sm font-medium text-white transition hover:bg-secondary">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="inline-flex h-12 items-center border border-line bg-white">
+        <button type="button" className="h-12 w-12 text-lg" aria-label="-" onClick={() => setQty(Math.max(1, qty - 1))}>−</button>
+        <label className="sr-only" htmlFor={`qty-${line.slug}`}>{qtyLabel}</label>
+        <input id={`qty-${line.slug}`} type="number" min={1} max={10} value={qty} onChange={(e) => setQty(Number(e.target.value))} className="h-12 w-12 border-x border-line bg-transparent text-center text-base" />
+        <button type="button" className="h-12 w-12 text-lg" aria-label="+" onClick={() => setQty(Math.min(10, qty + 1))}>+</button>
+      </div>
+      <button type="button" onClick={() => { add({ ...line, key: line.slug || crypto.randomUUID(), qty }); setDone(true); window.setTimeout(() => setDone(false), 1600); }} className="btn btn-solid w-full sm:w-auto">
         {done ? addedLabel : label}
       </button>
     </div>

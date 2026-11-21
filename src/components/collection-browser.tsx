@@ -1,8 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { AddProductButton } from "./cart";
-import { ProductGlyph } from "./glyphs";
+import { ProductVisual } from "./product-visual";
 import { dict } from "@/lib/i18n";
 import type { Locale, MetalGroup, Product } from "@/lib/types";
 
@@ -10,51 +9,47 @@ export function CollectionBrowser({ l, products }: { l: Locale; products: Produc
   const t = dict(l);
   const [metal, setMetal] = useState<MetalGroup | "all">("all");
   const [sort, setSort] = useState<"az" | "za">("az");
+  const present = useMemo(() => {
+    const groups = new Set(products.map((product) => product.metal_group));
+    return (["gold", "silver", "platinum", "palladium"] as MetalGroup[]).filter((group) => groups.has(group));
+  }, [products]);
   const rows = useMemo(() => {
     const filtered = products.filter((product) => metal === "all" || product.metal_group === metal);
     return filtered.sort((a, b) => (l === "en" ? a.name_en.localeCompare(b.name_en) : a.name_de.localeCompare(b.name_de, "de")) * (sort === "az" ? 1 : -1));
   }, [products, metal, sort, l]);
+  const chip = (active: boolean) => `inline-flex min-h-11 items-center border-b px-1 text-sm ${active ? "border-ink text-ink" : "border-transparent text-stone hover:text-ink"}`;
   return (
     <div>
-      <div className="flex flex-wrap items-end gap-4 rounded-xl border border-gold/30 bg-cream p-4">
-        <label className="text-sm">{t.filters.metal}
-          <select value={metal} onChange={(e) => setMetal(e.target.value as MetalGroup | "all")} className="mt-1 block rounded border border-gray-300 bg-white px-3 py-2">
-            <option value="all">{t.filters.all}</option>
-            <option value="gold">{t.filters.gold}</option>
-            <option value="silver">{t.filters.silver}</option>
-            <option value="platinum">{t.filters.platinum}</option>
-            <option value="palladium">{t.filters.palladium}</option>
-          </select>
-        </label>
-        <label className="text-sm">{t.filters.sort}
-          <select value={sort} onChange={(e) => setSort(e.target.value as "az" | "za")} className="mt-1 block rounded border border-gray-300 bg-white px-3 py-2">
-            <option value="az">{t.filters.name}</option>
-            <option value="za">{t.filters.nameDesc}</option>
-          </select>
-        </label>
-        <button type="button" onClick={() => { setMetal("all"); setSort("az"); }} className="text-sm text-secondary underline">{t.filters.reset}</button>
-        <p className="ml-auto text-sm text-gray-600">{t.results(rows.length)}</p>
+      <div className="mt-8 flex flex-col gap-4 border-y border-line py-3 md:flex-row md:items-center md:justify-between">
+        <div role="group" aria-label={t.filters.metal} className="flex flex-wrap gap-x-4">
+          <button type="button" className={chip(metal === "all")} aria-pressed={metal === "all"} onClick={() => setMetal("all")}>{t.filters.all}</button>
+          {present.map((group) => (
+            <button key={group} type="button" className={chip(metal === group)} aria-pressed={metal === group} onClick={() => setMetal(group)}>{t.filters[group]}</button>
+          ))}
+        </div>
+        <div className="flex items-center justify-between gap-4">
+          <label className="text-sm text-stone" htmlFor="sort">{t.filters.sort}
+            <select id="sort" value={sort} onChange={(e) => setSort(e.target.value as "az" | "za")} className="ml-3 min-h-11 border border-line bg-white px-3 text-base text-ink">
+              <option value="az">{t.filters.name}</option>
+              <option value="za">{t.filters.nameDesc}</option>
+            </select>
+          </label>
+          <p className="text-sm text-stone">{t.results(rows.length)}</p>
+        </div>
       </div>
-      <ul className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3" data-testid="collection-grid">
+      {rows.length === 0 ? <p className="py-16 text-stone">{t.results(0)}</p> : null}
+      <ul className="mt-10 grid grid-cols-1 gap-x-6 gap-y-14 sm:grid-cols-2 lg:grid-cols-3" data-testid="collection-grid">
         {rows.map((product) => {
           const name = l === "en" ? product.name_en : product.name_de;
           const alloy = l === "en" ? product.alloy_en : product.alloy_de;
           return (
-            <li key={product.slug} className="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white">
-              <Link href={`/${l}/schmuck/${product.slug}`} className="block bg-cream">
-                <ProductGlyph uid={product.slug} kind={product.glyph} tone={product.tone} title={name} />
+            <li key={product.slug}>
+              <Link href={`/${l}/schmuck/${product.slug}`} className="group block">
+                <ProductVisual slug={product.slug} glyph={product.glyph} tone={product.tone} alt="" locale={l} />
+                <h2 className="mt-4 font-serif text-3xl text-ink group-hover:text-metal">{name}</h2>
+                <p className="mt-1 text-sm text-stone">{alloy}</p>
+                <p className="mt-3 text-[11px] uppercase tracking-[0.16em]">{t.price}</p>
               </Link>
-              <div className="flex flex-1 flex-col gap-3 p-4">
-                <div>
-                  <h2 className="font-serif text-2xl text-navy"><Link href={`/${l}/schmuck/${product.slug}`} className="hover:text-gold-dark">{name}</Link></h2>
-                  <p className="text-sm text-gray-600">{alloy}{product.width_mm ? ` · ${product.width_mm} mm` : ""}</p>
-                  <p className="mt-1 text-sm text-secondary">{t.price}</p>
-                </div>
-                <AddProductButton
-                  line={{ kind: "product", sku: product.sku, slug: product.slug, name_de: product.name_de, name_en: product.name_en, detail_de: product.alloy_de, detail_en: product.alloy_en, glyph: product.glyph, tone: product.tone }}
-                  label={t.add} addedLabel={t.added} qtyLabel={t.qty}
-                />
-              </div>
             </li>
           );
         })}

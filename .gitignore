@@ -5,3 +5,4 @@ out
 !.env.example
 screenshots/*.tmp
 *.zip
+tsconfig.tsbuildinfo

@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
-import { Shell } from "@/components/chrome";
+import { Shell, PageIntro } from "@/components/chrome";
 import { dict } from "@/lib/i18n";
 import { takeLocale } from "@/lib/locale";
+import { pageMeta } from "@/lib/seo";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const locale = await takeLocale(params);
-  return { title: locale === "en" ? "Terms" : "AGB" };
+  const t = dict(locale);
+  return pageMeta(locale, t.footer.terms, t.legalNotice, "/agb");
 }
 
 export default async function Terms({ params }: { params: Promise<{ locale: string }> }) {
@@ -19,13 +21,13 @@ export default async function Terms({ params }: { params: Promise<{ locale: stri
     : "[Platzhalter] Diese Überschriften sind kein verbindlicher Vertragstext. Der Wortlaut wird vor dem Start geschrieben und geprüft. Bis dahin entsteht durch eine Anfrage auf dieser Seite kein Vertrag und keine Zahlungspflicht.";
   return (
     <Shell l={locale} crumbs={[{ label: t.footer.terms }]}>
-      <h1 className="font-serif text-4xl text-navy">{t.footer.terms}</h1>
-      <p className="mt-4 rounded-lg border border-gold/40 bg-cream p-4 text-sm">{note}</p>
-      <ol className="mt-6 max-w-3xl space-y-4">
+      <PageIntro title={t.footer.terms} />
+      <p className="note mt-8 max-w-3xl">{note}</p>
+      <div className="prose-quiet">
         {headings.map((heading) => (
-          <li key={heading}><h2 className="font-serif text-2xl text-navy">{heading}</h2><p className="mt-1 text-sm text-gray-600">{locale === "en" ? "[Text to follow]" : "[Text folgt]"}</p></li>
+          <section key={heading}><h2>{heading}</h2><p>{locale === "en" ? "[Text to follow]" : "[Text folgt]"}</p></section>
         ))}
-      </ol>
+      </div>
     </Shell>
   );
 }

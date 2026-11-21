@@ -1,35 +1,110 @@
 @import "tailwindcss";
 @import "@fontsource/cormorant-garamond/500.css";
 @import "@fontsource/cormorant-garamond/600.css";
-@import "@fontsource/inter/400.css";
-@import "@fontsource/inter/500.css";
-@import "@fontsource/inter/600.css";
-@import "@fontsource/great-vibes/400.css";
+@import "@fontsource/outfit/300.css";
+@import "@fontsource/outfit/400.css";
+@import "@fontsource/outfit/500.css";
 
 @theme {
-  --color-navy: #03123f;
-  --color-gold: #bf9e50;
-  --color-gold-dark: #a08440;
-  --color-gold-light: #e9dcb9;
-  --color-secondary: #243673;
-  --color-cream: #f8f5ee;
-  --color-ink: #2b2f3a;
-  --font-serif: "Cormorant Garamond", Georgia, serif;
-  --font-sans: "Inter", system-ui, sans-serif;
-  --font-script: "Great Vibes", cursive;
+  --color-paper: #f3f0ea;
+  --color-ivory: #fbfaf7;
+  --color-ink: #1a1814;
+  --color-stone: #5c564e;
+  --color-line: #e3dcd2;
+  --color-metal: #8a7049;
+  --font-serif: "Cormorant Garamond", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-sans: "Outfit", "Avenir Next", "Segoe UI", sans-serif;
 }
 
-html { scroll-behavior: smooth; }
-body { font-family: var(--font-sans); color: var(--color-ink); background: #fff; }
-h1, h2, h3, .font-serif { font-family: var(--font-serif); }
-.font-script { font-family: var(--font-script); }
+html { scroll-behavior: smooth; color-scheme: light; }
+body {
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  background: var(--color-paper);
+  font-weight: 400;
+  text-rendering: optimizeLegibility;
+}
+h1, h2, h3, .font-serif { font-family: var(--font-serif); font-weight: 500; }
 
-:focus-visible { outline: 2px solid #bf9e50; outline-offset: 3px; }
+:focus-visible { outline: 1px solid var(--color-ink); outline-offset: 3px; }
+::selection { background: #e7d7c4; color: var(--color-ink); }
+
 .skip-link {
   position: absolute; left: 1rem; top: -4rem; z-index: 80;
-  background: #fff; color: #03123f; padding: 0.5rem 0.8rem; border-radius: 0.4rem;
+  background: var(--color-ivory); color: var(--color-ink);
+  padding: 0.7rem 1rem; border: 1px solid var(--color-ink);
 }
 .skip-link:focus { top: 0.75rem; }
+
+.btn {
+  display: inline-flex;
+  min-height: 3rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1.5rem;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.btn-solid { background: var(--color-ink); color: var(--color-ivory); }
+.btn-solid:hover { background: #3a342c; }
+.btn-line { border: 1px solid var(--color-ink); color: var(--color-ink); background: transparent; }
+.btn-line:hover { background: var(--color-ink); color: var(--color-ivory); }
+.btn:disabled { opacity: 0.45; pointer-events: none; }
+
+.field {
+  width: 100%;
+  min-height: 3rem;
+  border: 1px solid var(--color-line);
+  background: white;
+  padding: 0.7rem 0.85rem;
+  font-size: 1rem;
+  color: var(--color-ink);
+}
+.field:focus { outline: 1px solid var(--color-ink); outline-offset: 1px; }
+textarea.field { min-height: 8rem; resize: vertical; }
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 2.75rem;
+  background: transparent;
+  cursor: pointer;
+}
+input[type="range"]:focus-visible { outline-offset: 2px; }
+input[type="range"]::-webkit-slider-runnable-track { height: 1px; background: var(--color-ink); }
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 1.35rem;
+  height: 1.35rem;
+  margin-top: -0.65rem;
+  border-radius: 999px;
+  background: var(--color-ink);
+  border: 2px solid var(--color-paper);
+  box-shadow: 0 0 0 1px var(--color-ink);
+}
+input[type="range"]::-moz-range-track { height: 1px; background: var(--color-ink); }
+input[type="range"]::-moz-range-thumb {
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 999px;
+  background: var(--color-ink);
+  border: 2px solid var(--color-paper);
+}
+
+.prose-quiet { max-width: 40rem; }
+.prose-quiet h2 { font-family: var(--font-serif); font-size: 1.7rem; font-weight: 500; margin-top: 2.4rem; }
+.prose-quiet p { margin-top: 0.75rem; line-height: 1.7; }
+.note {
+  border: 1px solid var(--color-line);
+  background: white;
+  padding: 1rem 1.15rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }

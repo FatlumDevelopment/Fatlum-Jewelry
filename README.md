@@ -22,7 +22,11 @@ Sister sites, linked in the header and footer:
 
 ## Configurator
 
-Steps: mode, profile (18 sections plus tube), width, height, German size 44–74, alloy, groove, finish, stones, inside engraving, summary. Pairs keep sizes apart and can link the rest of the design. Blanks skip stones and engraving. The preview is an original SVG sketch. Options are read from Supabase at runtime and fall back to `data/catalog.json` if the database is unreachable or empty.
+A lazy-loaded react-three-fiber model. Finished rings: yellow, white and rose gold in 585 and 750, platinum 950, diamond shape, carat (the stone scales), solitaire / halo / pavé, German size, inside engraving. Blanks: metal, width and size, without a stone. While the canvas loads, a studio photograph stands in. The enquiry stores the full configuration. No price, no payment.
+
+## Photographs
+
+Original studio photographs live in `public/images/jewelry/*.webp` (and `.avif`). Backgrounds are normalized to `#f7f4ef`. The map is `src/lib/image-slots.ts`. `next/image` serves AVIF or WebP with `sizes`. Dropping a replacement file at the same path is enough.
 
 ## Data
 
@@ -57,4 +61,6 @@ npm run build
 npm start
 ```
 
-Images are original SVG drawings. The wordmark file is the Fatlum mark shared with Fatlum Gold. No analytics, fonts are self-hosted.
+Product photographs are original studio files in `public/images/jewelry`. The wordmark is the Fatlum mark shared with Fatlum Gold. No analytics, fonts are self-hosted.
+
+No new database migration. Apply the two existing `jewelry_` migrations if they are not already on the project. Resend stays optional: without `RESEND_API_KEY` the enquiry is only stored.
