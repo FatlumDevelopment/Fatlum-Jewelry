@@ -25,7 +25,7 @@ export function RingCanvas({ config, view, onReady }: { config: RingConfig; view
       }}
     >
       <Suspense fallback={null}>
-        <RingScene config={config} view={view} bounces={narrow ? 2 : 3} smallBounces={narrow ? 1 : 2} />
+        <RingScene config={config} view={view} bounces={3} smallBounces={narrow ? 2 : 3} />
       </Suspense>
     </Canvas>
   );

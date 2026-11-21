@@ -10,7 +10,7 @@ import { bandGeometry, caratDiameter, galleryGeometry, gemGeometry, prongGeometr
 import { metalByCode } from "@/lib/ring-config";
 import type { RingConfig } from "@/lib/types";
 
-const HDR = "/hdri/studio_jewelry.hdr";
+const HDR = "/hdri/studio_strips_v2.hdr";
 
 function Gem({ geometry, envMap, bounces, scale = 1, position, quaternion }: {
   geometry: THREE.BufferGeometry;
@@ -22,7 +22,7 @@ function Gem({ geometry, envMap, bounces, scale = 1, position, quaternion }: {
 }) {
   return (
     <mesh geometry={geometry} scale={scale} position={position} quaternion={quaternion}>
-      <MeshRefractionMaterial envMap={envMap} bounces={bounces} ior={2.42} aberrationStrength={0.04} fresnel={0.55} fastChroma color="#ffffff" />
+      <MeshRefractionMaterial envMap={envMap} bounces={bounces} ior={2.42} aberrationStrength={0.015} fresnel={0.18} fastChroma color="#ffffff" />
     </mesh>
   );
 }
@@ -60,42 +60,15 @@ function FitView({ view, root, revision }: { view: "out" | "in"; root: RefObject
       const box = new THREE.Box3().setFromObject(group);
       if (box.isEmpty()) return;
       const look = box.getCenter(new THREE.Vector3());
-      if (view === "in") look.y -= box.getSize(new THREE.Vector3()).y * 0.15;
-      const corners = [
-        new THREE.Vector3(box.min.x, box.min.y, box.min.z),
-        new THREE.Vector3(box.min.x, box.min.y, box.max.z),
-        new THREE.Vector3(box.min.x, box.max.y, box.min.z),
-        new THREE.Vector3(box.min.x, box.max.y, box.max.z),
-        new THREE.Vector3(box.max.x, box.min.y, box.min.z),
-        new THREE.Vector3(box.max.x, box.min.y, box.max.z),
-        new THREE.Vector3(box.max.x, box.max.y, box.min.z),
-        new THREE.Vector3(box.max.x, box.max.y, box.max.z),
-      ];
-      const limitY = 0.86;
-      const limitX = 0.78;
-      const dir = (view === "in" ? new THREE.Vector3(0.04, -0.12, 1) : new THREE.Vector3(0.18, 0.46, 1)).normalize();
-      const radius = box.getBoundingSphere(new THREE.Sphere()).radius;
-      let lo = radius * 0.4;
-      let hi = radius * 24;
-      for (let step = 0; step < 18; step++) {
-        const dist = (lo + hi) / 2;
-        camera.position.copy(look).add(dir.clone().multiplyScalar(dist));
-        camera.near = Math.max(0.04, dist / 120);
-        camera.far = dist * 40;
-        camera.lookAt(look);
-        camera.updateProjectionMatrix();
-        camera.updateMatrixWorld();
-        let maxX = 0;
-        let maxY = 0;
-        for (const corner of corners) {
-          const projected = corner.clone().project(camera);
-          maxX = Math.max(maxX, Math.abs(projected.x));
-          maxY = Math.max(maxY, Math.abs(projected.y));
-        }
-        if (Math.max(maxY / limitY, maxX / limitX) > 1) lo = dist;
-        else hi = dist;
-      }
-      const dist = hi;
+      if (view === "in") look.y -= box.getSize(new THREE.Vector3()).y * 0.12;
+      const size = box.getSize(new THREE.Vector3());
+      const radius = 0.5 * Math.max(size.x, size.y, size.z);
+      const fill = view === "in" ? 0.66 : 0.84;
+      const aspect = viewport.width / Math.max(viewport.height, 1);
+      const vFov = THREE.MathUtils.degToRad(camera.fov);
+      const hFov = 2 * Math.atan(Math.tan(vFov / 2) * aspect);
+      const dist = radius / (Math.tan(Math.min(hFov, vFov) / 2) * fill);
+      const dir = (view === "in" ? new THREE.Vector3(0.04, -0.12, 1) : new THREE.Vector3(0.42, 0.38, 1)).normalize();
       camera.position.copy(look).add(dir.clone().multiplyScalar(dist));
       camera.near = Math.max(0.04, dist / 120);
       camera.far = dist * 40;
@@ -112,6 +85,31 @@ function FitView({ view, root, revision }: { view: "out" | "in"; root: RefObject
     return () => cancelAnimationFrame(frame);
   }, [camera, controls, revision, root, view, viewport.height, viewport.width]);
   return null;
+}
+
+function Glints() {
+  const group = useRef<THREE.Group>(null);
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
+    group.current?.children.forEach((child, i) => {
+      const f = Math.sin(t * 8 + i * 1.4);
+      child.visible = f > 0.45;
+      child.scale.setScalar(0.2 + Math.max(0, f) * 0.5);
+    });
+  });
+  return (
+    <group ref={group}>
+      {Array.from({ length: 6 }, (_, i) => {
+        const a = (i / 6) * Math.PI * 2 + 0.35;
+        return (
+          <mesh key={i} position={[Math.cos(a) * 0.2, 0.15, Math.sin(a) * 0.2]}>
+            <sphereGeometry args={[0.028, 6, 6]} />
+            <meshBasicMaterial color="#fffaf2" transparent opacity={0.9} depthWrite={false} toneMapped={false} />
+          </mesh>
+        );
+      })}
+    </group>
+  );
 }
 
 function Head({ config, envMap, bounces, smallBounces, metal }: {
@@ -133,15 +131,13 @@ function Head({ config, envMap, bounces, smallBounces, metal }: {
   return (
     <group>
       <Gem geometry={geo} envMap={envMap} bounces={bounces} />
+      <Glints />
       <mesh geometry={gallery} material={metal} />
       {Array.from({ length: count }, (_, i) => {
         const a = (i / count) * Math.PI * 2 + Math.PI / 4;
         return (
           <group key={i} rotation={[0, -a, 0]}>
             <mesh geometry={prong} material={metal} />
-            <mesh position={[0.42, 0.075, 0]} material={metal}>
-              <sphereGeometry args={[0.062, 16, 12]} />
-            </mesh>
           </group>
         );
       })}
@@ -179,9 +175,9 @@ export function RingScene({ config, view, bounces, smallBounces }: { config: Rin
     color: alloy.color,
     metalness: 1,
     roughness: alloy.roughness,
-    envMapIntensity: 1.65,
-    clearcoat: 0.55,
-    clearcoatRoughness: 0.12,
+    envMapIntensity: 1.7,
+    clearcoat: 0.2,
+    clearcoatRoughness: 0.04,
   }), [alloy.color, alloy.roughness]);
   useEffect(() => () => metal.dispose(), [metal]);
   const envMap = useEnvironment({ files: HDR });
@@ -221,9 +217,10 @@ export function RingScene({ config, view, bounces, smallBounces }: { config: Rin
     const g = canvas.getContext("2d");
     if (!g) return null;
     const grd = g.createRadialGradient(128, 128, 8, 128, 128, 118);
-    grd.addColorStop(0, "rgba(48,40,32,0.22)");
-    grd.addColorStop(0.45, "rgba(48,40,32,0.06)");
-    grd.addColorStop(1, "rgba(48,40,32,0)");
+    grd.addColorStop(0, "rgba(36,30,24,0.16)");
+    grd.addColorStop(0.32, "rgba(36,30,24,0.04)");
+    grd.addColorStop(0.62, "rgba(36,30,24,0)");
+    grd.addColorStop(1, "rgba(36,30,24,0)");
     g.fillStyle = grd;
     g.fillRect(0, 0, 256, 256);
     const map = new THREE.CanvasTexture(canvas);
@@ -239,9 +236,9 @@ export function RingScene({ config, view, bounces, smallBounces }: { config: Rin
 
   return (
     <>
-      <Environment files={HDR} environmentIntensity={1.25} environmentRotation={[0, 0.55, 0]} />
+      <Environment files={HDR} environmentIntensity={1} environmentRotation={[0, 0.9, 0]} />
       <FitView view={view} root={ringRef} revision={`${config.mode}-${config.size_mm}-${config.width_mm}-${config.carat}-${config.shape}-${config.setting}-${view}`} />
-      <ambientLight intensity={0.06} />
+      <ambientLight intensity={0.02} />
       <group ref={ringRef} rotation={pose}>
         <group rotation={[Math.PI / 2, 0, 0]}>
           <mesh geometry={band} material={metal} />
@@ -262,8 +259,8 @@ export function RingScene({ config, view, bounces, smallBounces }: { config: Rin
         ))}
       </group>
       {shadow && (
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -(outer + 0.35), 0]}>
-          <planeGeometry args={[outer * 4.2, outer * 4.2]} />
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -outer * 0.82, 0]}>
+          <planeGeometry args={[outer * 1.7, outer * 1.7]} />
           <meshBasicMaterial map={shadow} transparent depthWrite={false} toneMapped={false} />
         </mesh>
       )}

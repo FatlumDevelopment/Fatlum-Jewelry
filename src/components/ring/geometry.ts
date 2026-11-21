@@ -63,15 +63,17 @@ function pushOut(out: number[], a: THREE.Vector3, b: THREE.Vector3, c: THREE.Vec
 export function roundBrilliant() {
   const out: number[] = [];
   const R = 0.5;
-  const tableR = R * 0.55;
-  const starR = R * 0.8;
-  const crownY = R * 0.32;
-  const starY = crownY * 0.55;
-  const gTop = R * 0.03;
-  const gBot = -R * 0.03;
-  const breakR = R * 0.42;
-  const breakY = -R * 0.5;
-  const culetY = -R * 0.86;
+  const tableR = R * 0.57;
+  const crownH = (R - tableR) * Math.tan((34.5 * Math.PI) / 180);
+  const pavD = R * Math.tan((40.75 * Math.PI) / 180);
+  const starR = tableR + (R - tableR) * 0.55;
+  const gTop = 0.012;
+  const gBot = -0.012;
+  const crownY = gTop + crownH;
+  const starY = gTop + crownH * 0.42;
+  const breakR = R * 0.38;
+  const breakY = -pavD * 0.62;
+  const culetY = -pavD;
   const C: THREE.Vector3[] = [];
   const K: THREE.Vector3[] = [];
   const B: THREE.Vector3[] = [];
@@ -99,7 +101,6 @@ export function roundBrilliant() {
     pushOut(out, C[i]!, K[n]!, C[n]!);
     pushOut(out, K[i]!, U[p]!, B[i]!);
     pushOut(out, K[i]!, B[i]!, U[i]!);
-    pushOut(out, B[i]!, U[p]!, U[i]!);
     pushOut(out, B[i]!, U[i]!, LB[i]!);
     pushOut(out, U[i]!, LU[i]!, LB[i]!);
     pushOut(out, U[i]!, B[n]!, LU[i]!);
@@ -115,12 +116,12 @@ export function roundBrilliant() {
 /** Slim round prong along +X. The tip curls in over a unit girdle. */
 export function prongGeometry() {
   const curve = new THREE.CatmullRomCurve3([
-    V(0.28, -0.36, 0),
-    V(0.42, -0.16, 0),
-    V(0.55, -0.02, 0),
-    V(0.46, 0.07, 0),
+    V(0.32, -0.22, 0),
+    V(0.5, -0.04, 0),
+    V(0.53, 0.02, 0),
+    V(0.44, 0.07, 0),
   ]);
-  return new THREE.TubeGeometry(curve, 18, 0.042, 10, false);
+  return new THREE.TubeGeometry(curve, 16, 0.026, 8, false);
 }
 
 /** Cup under the stone. Pavilion sits inside it; the rim is just under the girdle. */
