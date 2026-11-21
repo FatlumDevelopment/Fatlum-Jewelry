@@ -30,6 +30,7 @@ export function EnquiryForm({
 }) {
   const t = dict(locale);
   const [state, setState] = useState<"idle" | "sending" | "ok" | "mail" | "err">("idle");
+  const [mailFailed, setMailFailed] = useState(false);
   const [ref, setRef] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -72,8 +73,9 @@ export function EnquiryForm({
         setState("err");
         return;
       }
-      const data = (await response.json()) as { emailed?: boolean; ref?: string };
+      const data = (await response.json()) as { emailed?: boolean; ref?: string; mail?: string };
       setRef(data.ref || "");
+      setMailFailed(data.mail === "failed");
       setState(data.emailed ? "mail" : "ok");
       onSuccess?.();
     } catch {
@@ -86,6 +88,7 @@ export function EnquiryForm({
       <div data-testid="success" className="border border-line bg-white px-6 py-10" role="status">
         <p className="font-serif text-3xl">{state === "mail" ? t.request.successMail : source === "contact" ? t.contact.success : t.request.success}</p>
         {ref ? <p className="mt-4 text-sm tracking-[0.14em] uppercase text-stone">{t.request.ref(ref)}</p> : null}
+        {mailFailed ? <p className="mt-4 text-sm text-[#7a2e24]">{t.request.mailFailed}</p> : null}
         <p className="mt-4 text-sm text-stone">{t.request.noPayment}</p>
       </div>
     );
