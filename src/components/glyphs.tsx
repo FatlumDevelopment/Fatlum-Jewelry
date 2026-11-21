@@ -47,8 +47,8 @@ export function ProductGlyph({ uid, kind, tone, title }: { uid: string; kind: Gl
   const fill = `url(#${uid}-m)`;
   return (
     <svg viewBox="0 0 320 240" role="img" aria-label={title} className="h-full w-full">
-      <rect width="320" height="240" fill="#f8f5ee" />
-      <ellipse cx="160" cy="196" rx="78" ry="12" fill="#03123f" opacity="0.06" />
+      <rect width="320" height="240" fill="#f6f3ee" />
+      <ellipse cx="160" cy="196" rx="78" ry="12" fill="#1a1814" opacity="0.06" />
       <MetalDefs uid={uid} tone={tone} />
       {kind === "band" && <Band uid={uid} fill={fill} />}
       {kind === "solitaire" && <Solitaire uid={uid} fill={fill} />}
@@ -76,8 +76,8 @@ function Solitaire({ uid, fill }: { uid: string; fill: string }) {
   return (
     <g>
       <ellipse cx="160" cy="132" rx="74" ry="32" fill="none" stroke={fill} strokeWidth="14" />
-      <polygon points="160,58 176,86 160,108 144,86" fill={`url(#${uid}-s)`} stroke="#03123f" strokeOpacity="0.35" />
-      <path d="M144 86 H176 M160 58 V108" stroke="#03123f" strokeOpacity="0.25" />
+      <polygon points="160,58 176,86 160,108 144,86" fill={`url(#${uid}-s)`} stroke="#1a1814" strokeOpacity="0.35" />
+      <path d="M144 86 H176 M160 58 V108" stroke="#1a1814" strokeOpacity="0.25" />
     </g>
   );
 }
@@ -87,7 +87,7 @@ function Pave({ uid, fill }: { uid: string; fill: string }) {
     <g>
       <ellipse cx="160" cy="128" rx="78" ry="34" fill="none" stroke={fill} strokeWidth="16" />
       {dots.map((dx) => (
-        <circle key={dx} cx={160 + dx} cy={100 + Math.abs(dx) * 0.18} r="4.2" fill="#f8f5ee" stroke={fill} strokeWidth="1.4" />
+        <circle key={dx} cx={160 + dx} cy={100 + Math.abs(dx) * 0.18} r="4.2" fill="#f6f3ee" stroke={fill} strokeWidth="1.4" />
       ))}
     </g>
   );
@@ -96,7 +96,7 @@ function Signet({ fill }: { uid: string; fill: string }) {
   return (
     <g>
       <path d="M118 150c0-28 18-40 42-40s42 12 42 40v18H118z" fill={fill} />
-      <ellipse cx="160" cy="118" rx="36" ry="26" fill={fill} stroke="#03123f" strokeOpacity="0.2" />
+      <ellipse cx="160" cy="118" rx="36" ry="26" fill={fill} stroke="#1a1814" strokeOpacity="0.2" />
       <ellipse cx="160" cy="118" rx="22" ry="14" fill="none" stroke="white" strokeOpacity="0.45" />
     </g>
   );
@@ -154,7 +154,7 @@ function Locket({ uid, fill }: { uid: string; fill: string }) {
       <path d="M160 62 v16" stroke={fill} strokeWidth="4" />
       <circle cx="160" cy="128" r="48" fill={fill} />
       <circle cx="160" cy="128" r="34" fill="none" stroke="white" strokeOpacity="0.4" />
-      <path d="M160 104 v48" stroke="#03123f" strokeOpacity="0.15" />
+      <path d="M160 104 v48" stroke="#1a1814" strokeOpacity="0.15" />
     </g>
   );
 }
@@ -162,7 +162,7 @@ function Locket({ uid, fill }: { uid: string; fill: string }) {
 export function ProfileMark({ path, active }: { path: string; active?: boolean }) {
   return (
     <svg viewBox="0 0 100 64" className="h-14 w-full" aria-hidden>
-      <path d={path} fill={active ? "#bf9e50" : "#03123f"} fillRule="evenodd" />
+      <path d={path} fill={active ? "#8a7049" : "#1a1814"} fillRule="evenodd" />
     </svg>
   );
 }
@@ -196,8 +196,8 @@ export function RingSketch({
   const list = (pair ? rings.slice(0, 2) : rings.slice(0, 1)).filter(Boolean);
   return (
     <svg viewBox="0 0 640 440" role="img" aria-label={label} className="h-auto w-full">
-      <rect width="640" height="440" rx="28" fill="#f8f5ee" />
-      <ellipse cx="320" cy="360" rx="180" ry="22" fill="#03123f" opacity="0.05" />
+      <rect width="640" height="440" rx="28" fill="#f6f3ee" />
+      <ellipse cx="320" cy="360" rx="180" ry="22" fill="#1a1814" opacity="0.05" />
       {list.map((ring, index) => (
         <RingLayer key={index} uid={`${uid}-${index}`} ring={ring} index={index} count={list.length} />
       ))}
@@ -227,7 +227,7 @@ function RingLayer({ uid, ring, index, count }: { uid: string; ring: PreviewRing
           {ring.finish === "hammer" && (
             <>
               <circle cx="3" cy="3" r="1.6" fill="white" opacity="0.35" />
-              <circle cx="8" cy="7" r="1.3" fill="#03123f" opacity="0.18" />
+              <circle cx="8" cy="7" r="1.3" fill="#1a1814" opacity="0.18" />
             </>
           )}
           {ring.finish === "ice" && (
@@ -238,8 +238,8 @@ function RingLayer({ uid, ring, index, count }: { uid: string; ring: PreviewRing
           )}
           {ring.finish === "sand" && (
             <>
-              <circle cx="2" cy="3" r="0.5" fill="#03123f" opacity="0.25" />
-              <circle cx="6" cy="7" r="0.45" fill="#03123f" opacity="0.2" />
+              <circle cx="2" cy="3" r="0.5" fill="#1a1814" opacity="0.25" />
+              <circle cx="6" cy="7" r="0.45" fill="#1a1814" opacity="0.2" />
               <circle cx="8" cy="2" r="0.4" fill="white" opacity="0.4" />
             </>
           )}
@@ -283,11 +283,11 @@ function Stones({ cx, cy, rx, ry, ring }: { cx: number; cy: number; rx: number; 
     <g>
       {stones.map((stone, i) =>
         ring.stoneCode === "channel" ? (
-          <rect key={i} x={stone.x - r} y={stone.y - r * 0.7} width={r * 2} height={r * 1.4} rx="0.6" fill="#f8f5ee" stroke="#03123f" strokeOpacity="0.35" />
+          <rect key={i} x={stone.x - r} y={stone.y - r * 0.7} width={r * 2} height={r * 1.4} rx="0.6" fill="#f6f3ee" stroke="#1a1814" strokeOpacity="0.35" />
         ) : (
           <g key={i}>
-            <circle cx={stone.x} cy={stone.y} r={r} fill="#fbfaf6" stroke="#03123f" strokeOpacity="0.35" />
-            <path d={`M ${stone.x - r} ${stone.y} H ${stone.x + r} M ${stone.x} ${stone.y - r} V ${stone.y + r}`} stroke="#bf9e50" strokeOpacity="0.7" />
+            <circle cx={stone.x} cy={stone.y} r={r} fill="#fbfaf6" stroke="#1a1814" strokeOpacity="0.35" />
+            <path d={`M ${stone.x - r} ${stone.y} H ${stone.x + r} M ${stone.x} ${stone.y - r} V ${stone.y + r}`} stroke="#8a7049" strokeOpacity="0.7" />
           </g>
         ),
       )}
@@ -302,9 +302,9 @@ export function SectionSketch({ path, hex, width, height, groove }: { path: stri
     <svg viewBox="0 0 100 64" className="h-16 w-24" aria-hidden>
       <rect width="100" height="64" rx="8" fill="#fff" />
       <g transform={`translate(50 32) scale(${sx} ${sy}) translate(-50 -32)`}>
-        <path d={path} fill={hex} fillRule="evenodd" stroke="#03123f" strokeOpacity="0.25" />
-        {groove === "u" && <rect x="42" y="16" width="16" height="8" rx="4" fill="#03123f" opacity="0.35" />}
-        {groove === "v" && <path d="M46 16 L50 26 L54 16 Z" fill="#03123f" opacity="0.4" />}
+        <path d={path} fill={hex} fillRule="evenodd" stroke="#1a1814" strokeOpacity="0.25" />
+        {groove === "u" && <rect x="42" y="16" width="16" height="8" rx="4" fill="#1a1814" opacity="0.35" />}
+        {groove === "v" && <path d="M46 16 L50 26 L54 16 Z" fill="#1a1814" opacity="0.4" />}
       </g>
     </svg>
   );

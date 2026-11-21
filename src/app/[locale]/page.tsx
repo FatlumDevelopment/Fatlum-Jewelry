@@ -1,94 +1,143 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Shell } from "@/components/chrome";
-import { ProductGlyph } from "@/components/glyphs";
-import { getCategories, getProducts } from "@/lib/catalog";
+import { ProductVisual } from "@/components/product-visual";
+import { StudioFrame } from "@/components/studio-image";
+import { getProducts } from "@/lib/catalog";
 import { guideIndex } from "@/lib/content";
 import { dict } from "@/lib/i18n";
+import { categoryPhoto, imageSizes, type JewelryId } from "@/lib/image-slots";
 import { takeLocale } from "@/lib/locale";
+import { SITE, pageMeta } from "@/lib/seo";
+import { CONTACT } from "@/lib/site";
 
 export const revalidate = 60;
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const locale = await takeLocale(params);
   const t = dict(locale);
-  return { title: t.meta.homeTitle, description: t.meta.homeDescription };
+  return pageMeta(locale, locale === "de" ? t.meta.homeAbsoluteDe : t.meta.homeAbsoluteEn, t.meta.homeDescription, "", true);
 }
 
 export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
   const locale = await takeLocale(params);
   const t = dict(locale);
-  const [categories, products] = await Promise.all([getCategories(), getProducts()]);
-  const featured = ["trauringe", "verlobungsringe", "weitere-ringe", "ketten", "ohrringe", "anhaenger"]
-    .map((slug) => categories.find((category) => category.slug === slug))
-    .filter((category) => category !== undefined);
-  const preview = products.filter((product) => ["aurelia", "solis", "lina", "ronda"].includes(product.slug));
+  const products = await getProducts();
+  const featured = ["aurelia", "solis", "rosa", "klarheit"].map((slug) => products.find((item) => item.slug === slug)).filter((item) => item !== undefined);
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "JewelryStore",
+    name: "Fatlum Jewelry",
+    url: `${SITE}/${locale}`,
+    image: `${SITE}/images/jewelry/hero-rings.webp`,
+    telephone: CONTACT.phone,
+    email: CONTACT.email,
+    address: { "@type": "PostalAddress", streetAddress: CONTACT.street, postalCode: "80539", addressLocality: "München", addressCountry: "DE" },
+  };
   return (
-    <Shell l={locale}>
-      <section className="mt-6 overflow-hidden rounded-2xl bg-gradient-to-r from-navy via-secondary to-navy px-6 py-12 text-white md:px-12" data-testid="home-hero">
-        <p className="text-xs tracking-[0.28em] text-gold">{t.hero.kicker}</p>
-        <h1 className="mt-3 max-w-3xl font-serif text-4xl text-gold md:text-6xl">{t.hero.title}</h1>
-        <p className="mt-4 max-w-2xl text-white/85">{t.hero.text}</p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Link href={`/${locale}/konfigurator`} className="rounded-full bg-gold px-5 py-2.5 font-medium text-navy hover:bg-gold-light">{t.hero.ctaConfig}</Link>
-          <Link href={`/${locale}/kollektion/trauringe`} className="rounded-full border border-white/40 px-5 py-2.5 hover:border-gold hover:text-gold">{t.hero.ctaRings}</Link>
+    <Shell l={locale} wide>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <section className="grid items-center gap-8 pb-8 pt-4 lg:h-[calc(100svh-7rem)] lg:grid-cols-12 lg:gap-16 lg:pb-6 lg:pt-0" data-testid="home-hero">
+        <div className="order-1 lg:order-2 lg:col-span-7">
+          <StudioFrame id="hero-rings" locale={locale} sizes={imageSizes.hero} priority ratio="aspect-[5/4] sm:aspect-[4/3] lg:aspect-[4/3]" />
+        </div>
+        <div className="order-2 lg:order-1 lg:col-span-5">
+          <p className="text-[11px] uppercase tracking-[0.22em] text-metal">{t.hero.kicker}</p>
+          <h1 className="mt-4 font-serif text-[2.6rem] leading-[0.98] tracking-[-0.03em] sm:text-6xl lg:text-7xl">{t.hero.title}</h1>
+          <p className="mt-5 max-w-md text-[15px] leading-relaxed text-stone md:text-base">{t.hero.text}</p>
+          <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-3">
+            <Link className="inline-flex min-h-11 items-center border-b border-ink text-[11px] uppercase tracking-[0.18em]" href={`/${locale}/konfigurator`}>{t.hero.ctaConfig}</Link>
+            <Link className="inline-flex min-h-11 items-center border-b border-line text-[11px] uppercase tracking-[0.18em] text-stone" href={`/${locale}/kollektion/trauringe`}>{t.hero.ctaRings}</Link>
+          </div>
         </div>
       </section>
 
-      <section className="mt-12">
-        <h2 className="font-serif text-3xl text-navy">{t.landing.collectionsTitle}</h2>
-        <ul className="mt-6 grid gap-4 md:grid-cols-3">
-          {featured.slice(0, 3).map((category) => (
-            <li key={category.slug}>
-              <Link href={`/${locale}/kollektion/${category.slug}`} className="block h-full rounded-xl border border-gold/30 bg-cream p-5 hover:border-gold">
-                <h3 className="font-serif text-2xl text-navy">{locale === "en" ? category.name_en : category.name_de}</h3>
-                <p className="mt-2 text-sm text-gray-700">{locale === "en" ? category.description_en : category.description_de}</p>
+      <ul className="border-t border-line">
+        {t.landing.rows.map(([title, note, href]) => {
+          const thumb = (href === "/konfigurator" ? "hero-ring-macro" : categoryPhoto[href.split("/").pop() || ""]) as JewelryId | undefined;
+          return (
+            <li key={href} className="border-b border-line">
+              <Link href={`/${locale}${href}`} className="group flex min-h-20 items-center gap-4 py-4 sm:gap-6 sm:py-5">
+                {thumb ? <span className="relative block h-16 w-16 shrink-0 overflow-hidden sm:h-20 sm:w-24"><StudioFrame id={thumb} locale={locale} alt="" sizes="96px" ratio="h-full w-full" /></span> : null}
+                <span className="min-w-0 flex-1 font-serif text-3xl leading-none sm:text-4xl md:text-5xl">{title}</span>
+                <span className="hidden text-[11px] uppercase tracking-[0.16em] text-stone sm:block">{note}</span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+
+      <section className="mt-16 md:mt-24">
+        <div className="flex items-end justify-between gap-4">
+          <h2 className="font-serif text-3xl md:text-4xl">{t.landing.featured}</h2>
+          <Link href={`/${locale}/kollektion/trauringe`} className="inline-flex min-h-11 items-center text-[11px] uppercase tracking-[0.16em] underline">{t.landing.allWedding}</Link>
+        </div>
+        <ul className="mt-8 grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2">
+          {featured.map((product, index) => {
+            const name = locale === "en" ? product.name_en : product.name_de;
+            return (
+              <li key={product.slug}>
+                <Link href={`/${locale}/schmuck/${product.slug}`} className="group block">
+                  <ProductVisual slug={product.slug} glyph={product.glyph} tone={product.tone} alt="" locale={locale} priority={index === 0} />
+                  <h3 className="mt-4 font-serif text-3xl group-hover:text-metal">{name}</h3>
+                  <p className="mt-1 text-sm text-stone">{locale === "en" ? product.alloy_en : product.alloy_de}</p>
+                  <p className="mt-3 text-[11px] uppercase tracking-[0.16em]">{t.price}</p>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      <section className="mt-16 md:mt-24">
+        <StudioFrame id="hero-ring-macro" locale={locale} sizes={imageSizes.wide} ratio="aspect-video" />
+      </section>
+
+      <section className="mt-16 grid gap-10 md:mt-24 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+        <StudioFrame id="ring-blanks" locale={locale} sizes={imageSizes.hero} ratio="aspect-square" />
+        <div>
+          <h2 className="font-serif text-4xl md:text-5xl">{t.landing.houseTitle}</h2>
+          <p className="mt-4 max-w-md text-[15px] leading-relaxed text-stone">{t.landing.houseText}</p>
+          <ol className="mt-8 divide-y divide-line border-y border-line">
+            {t.landing.steps.map(([title, text]) => (
+              <li key={title} className="grid gap-1 py-4 sm:grid-cols-[8rem_1fr] sm:gap-6">
+                <p className="font-serif text-2xl">{title}</p>
+                <p className="text-sm leading-relaxed text-stone">{text}</p>
+              </li>
+            ))}
+          </ol>
+          <Link href={`/${locale}/ueber-uns`} className="mt-6 inline-flex min-h-11 items-center text-[11px] uppercase tracking-[0.16em] underline">{t.landing.houseLink}</Link>
+        </div>
+      </section>
+
+      <section className="mt-16 md:mt-24">
+        <h2 className="font-serif text-3xl md:text-4xl">{locale === "de" ? "Weiterer Schmuck" : "Further jewelry"}</h2>
+        <ul className="mt-8 grid gap-6 sm:grid-cols-3">
+          {([
+            ["earrings-gold", t.nav.earrings, `/${locale}/kollektion/ohrringe`],
+            ["necklace-pendant-gold", t.nav.chains, `/${locale}/kollektion/ketten`],
+            ["bracelet-gold", t.nav.pendants, `/${locale}/kollektion/anhaenger`],
+          ] as const).map(([id, label, href]) => (
+            <li key={id}>
+              <Link href={href} className="group block">
+                <StudioFrame id={id} locale={locale} alt="" sizes={imageSizes.card} />
+                <p className="mt-4 font-serif text-3xl group-hover:text-metal">{label}</p>
               </Link>
             </li>
           ))}
         </ul>
       </section>
 
-      <section className="mt-14 grid items-center gap-8 rounded-2xl bg-cream p-6 md:grid-cols-[1.1fr_0.9fr] md:p-10">
-        <div>
-          <h2 className="font-serif text-3xl text-navy">{t.landing.configTitle}</h2>
-          <p className="mt-3 text-sm leading-relaxed">{t.landing.configText}</p>
-          <ul className="mt-5 space-y-3">
-            {t.landing.modes.map(([title, text]) => (
-              <li key={title}><p className="font-serif text-xl text-secondary">{title}</p><p className="text-sm text-gray-700">{text}</p></li>
-            ))}
-          </ul>
-          <Link href={`/${locale}/konfigurator`} className="mt-6 inline-block rounded bg-navy px-5 py-2.5 text-white hover:bg-secondary">{t.hero.ctaConfig}</Link>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          {preview.map((product) => (
-            <Link key={product.slug} href={`/${locale}/schmuck/${product.slug}`} className="overflow-hidden rounded-xl bg-white">
-              <ProductGlyph uid={`home-${product.slug}`} kind={product.glyph} tone={product.tone} title={locale === "en" ? product.name_en : product.name_de} />
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <section className="mt-14">
-        <h2 className="font-serif text-3xl text-navy">{t.landing.jewelryTitle}</h2>
-        <ul className="mt-6 grid gap-4 sm:grid-cols-3">
-          {featured.slice(3).map((category) => (
-            <li key={category.slug}><Link href={`/${locale}/kollektion/${category.slug}`} className="block rounded-xl border border-gray-200 p-5 hover:border-gold"><h3 className="font-serif text-2xl text-navy">{locale === "en" ? category.name_en : category.name_de}</h3><p className="mt-2 text-sm">{locale === "en" ? category.description_en : category.description_de}</p></Link></li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {t.landing.trust.map(([title, text]) => (
-          <div key={title} className="rounded-xl border border-gold/30 p-4"><p className="font-serif text-xl text-navy">{title}</p><p className="mt-2 text-sm text-gray-600">{text}</p></div>
-        ))}
-      </section>
-
-      <section className="mt-14">
-        <h2 className="font-serif text-3xl text-navy">{t.landing.guidesTitle}</h2>
-        <ul className="mt-6 grid gap-4 md:grid-cols-4">
+      <section className="mt-16 md:mt-24">
+        <h2 className="font-serif text-3xl md:text-4xl">{t.landing.guidesTitle}</h2>
+        <ul className="mt-6 divide-y divide-line border-y border-line">
           {guideIndex[locale].map((guide) => (
-            <li key={guide.slug}><Link href={`/${locale}/ratgeber/${guide.slug}`} className="block h-full rounded-xl bg-navy p-4 text-white hover:bg-secondary"><h3 className="font-serif text-xl text-gold">{guide.title}</h3><p className="mt-2 text-sm text-white/80">{guide.text}</p></Link></li>
+            <li key={guide.slug}>
+              <Link href={`/${locale}/ratgeber/${guide.slug}`} className="flex min-h-16 flex-col justify-center gap-1 py-4 sm:flex-row sm:items-baseline sm:justify-between">
+                <span className="font-serif text-2xl">{guide.title}</span>
+                <span className="max-w-sm text-sm text-stone sm:text-right">{guide.text}</span>
+              </Link>
+            </li>
           ))}
         </ul>
       </section>

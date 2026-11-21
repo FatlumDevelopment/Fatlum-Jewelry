@@ -1,27 +1,22 @@
 import type { Metadata } from "next";
 import { Shell } from "@/components/chrome";
 import { Configurator } from "@/components/configurator";
-import { getOptions } from "@/lib/catalog";
 import { dict } from "@/lib/i18n";
 import { takeLocale } from "@/lib/locale";
-
-export const revalidate = 60;
+import { pageMeta } from "@/lib/seo";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const locale = await takeLocale(params);
   const t = dict(locale);
-  return { title: t.meta.configTitle, description: t.meta.configDescription, alternates: { languages: { de: "/de/konfigurator", en: "/en/konfigurator" } } };
+  return pageMeta(locale, t.meta.configTitle, t.meta.configDescription, "/konfigurator");
 }
 
-export default async function ConfigPage({ params }: { params: Promise<{ locale: string }> }) {
+export default async function ConfiguratorPage({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<{ art?: string }> }) {
   const locale = await takeLocale(params);
-  const t = dict(locale);
-  const options = await getOptions();
+  const art = (await searchParams).art;
   return (
-    <Shell l={locale} crumbs={[{ label: t.nav.configurator }]}>
-      <h1 className="font-serif text-4xl text-navy md:text-5xl">{t.config.title}</h1>
-      <p className="mt-3 max-w-3xl text-gray-700">{t.config.lead}</p>
-      <div className="mt-8"><Configurator l={locale} options={options} /></div>
+    <Shell l={locale} wide>
+      <Configurator l={locale} initialMode={art === "rohling" ? "blank" : "finished"} />
     </Shell>
   );
 }
