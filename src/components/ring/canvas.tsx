@@ -1,22 +1,26 @@
 "use client";
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
 import { RingScene } from "./scene";
 import type { RingConfig } from "@/lib/types";
 
 export function RingCanvas({ config, view, onReady }: { config: RingConfig; view: "out" | "in"; onReady: () => void }) {
-  const narrow = typeof window !== "undefined" && window.innerWidth < 768;
+  const [narrow] = useState(() => typeof window !== "undefined" && window.innerWidth < 768);
+  const [ratio] = useState(() => Math.min(typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1, 3));
   return (
     <Canvas
       className="h-full w-full touch-none"
-      dpr={narrow ? [1, 1.15] : [1, 1.5]}
-      camera={{ position: [18, 12, 28], fov: 30, near: 0.1, far: 400 }}
-      gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}
+      dpr={ratio}
+      resize={{ scroll: false, debounce: 0 }}
+      camera={{ position: [18, 12, 28], fov: 28, near: 0.1, far: 400 }}
+      gl={{ antialias: true, alpha: true, powerPreference: "high-performance", preserveDrawingBuffer: false }}
       onCreated={({ gl }) => {
+        gl.setPixelRatio(ratio);
+        gl.outputColorSpace = THREE.SRGBColorSpace;
         gl.toneMapping = THREE.ACESFilmicToneMapping;
-        gl.toneMappingExposure = 1.02;
-        gl.setClearColor(0xf3f0ea, 1);
+        gl.toneMappingExposure = 1.08;
+        gl.setClearColor(0x000000, 0);
         onReady();
       }}
     >

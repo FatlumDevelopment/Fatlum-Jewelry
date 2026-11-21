@@ -273,7 +273,7 @@ export function bandGeometry(innerRadius: number, width: number, thickness: numb
     pts.push(new THREE.Vector2(cx + Math.sin(Math.PI * t) * cr, y));
   }
   pts.push(pts[0]!.clone());
-  const geo = new THREE.LatheGeometry(pts, 128);
+  const geo = new THREE.LatheGeometry(pts, 256);
   geo.computeVertexNormals();
   return geo;
 }

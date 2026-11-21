@@ -75,8 +75,8 @@ export function Configurator({ l, initialMode }: { l: Locale; initialMode: RingC
         <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-stone">{t.config.lead}</p>
       </header>
       <div className="lg:grid lg:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)] lg:items-start lg:gap-14">
-        <div className="sticky top-16 z-20 -mx-5 bg-paper px-5 pb-3 lg:top-28 lg:mx-0 lg:px-0">
-          <div className="relative h-[248px] sm:h-[360px] lg:h-[min(640px,calc(100vh-11rem))]">
+        <div>
+          <div className="relative aspect-square w-full lg:aspect-auto lg:h-[min(720px,calc(100vh-10rem))]">
             <RingStage
               config={ring}
               view={view}
@@ -95,7 +95,7 @@ export function Configurator({ l, initialMode }: { l: Locale; initialMode: RingC
           <p className="mt-1 text-sm text-stone">{t.config.modelNote}</p>
         </div>
 
-        <div className="mt-8 space-y-10 lg:mt-0">
+        <div className="mt-10 space-y-10 lg:mt-0">
           <fieldset>
             <legend className="text-[11px] uppercase tracking-[0.18em] text-stone">{l === "de" ? "Art" : "Piece"}</legend>
             <div className="mt-3 grid gap-2 sm:grid-cols-2">

@@ -1,8 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, type RefObject } from "react";
-import { useThree } from "@react-three/fiber";
-import { ContactShadows, Environment, MeshRefractionMaterial, OrbitControls, useEnvironment } from "@react-three/drei";
-import { Bloom, EffectComposer } from "@react-three/postprocessing";
+import { useFrame, useThree } from "@react-three/fiber";
+import { Environment, MeshRefractionMaterial, OrbitControls, useEnvironment } from "@react-three/drei";
 import * as THREE from "three";
 import { cubeUvReflectionFragment } from "./cube-uv-chunk";
 
@@ -11,7 +10,7 @@ import { bandGeometry, caratDiameter, galleryGeometry, gemGeometry, prongGeometr
 import { metalByCode } from "@/lib/ring-config";
 import type { RingConfig } from "@/lib/types";
 
-const HDR = "/hdri/studio_contrast.hdr";
+const HDR = "/hdri/studio_jewelry.hdr";
 
 function Gem({ geometry, envMap, bounces, scale = 1, position, quaternion }: {
   geometry: THREE.BufferGeometry;
@@ -23,7 +22,7 @@ function Gem({ geometry, envMap, bounces, scale = 1, position, quaternion }: {
 }) {
   return (
     <mesh geometry={geometry} scale={scale} position={position} quaternion={quaternion}>
-      <MeshRefractionMaterial envMap={envMap} bounces={bounces} ior={2.42} aberrationStrength={0.02} fresnel={0.35} fastChroma color="#ffffff" />
+      <MeshRefractionMaterial envMap={envMap} bounces={bounces} ior={2.42} aberrationStrength={0.04} fresnel={0.55} fastChroma color="#ffffff" />
     </mesh>
   );
 }
@@ -72,9 +71,8 @@ function FitView({ view, root, revision }: { view: "out" | "in"; root: RefObject
         new THREE.Vector3(box.max.x, box.max.y, box.min.z),
         new THREE.Vector3(box.max.x, box.max.y, box.max.z),
       ];
-      const narrow = viewport.width < 768;
-      const limitY = narrow ? 0.88 : 0.74;
-      const limitX = 0.9;
+      const limitY = 0.86;
+      const limitX = 0.78;
       const dir = (view === "in" ? new THREE.Vector3(0.04, -0.12, 1) : new THREE.Vector3(0.18, 0.46, 1)).normalize();
       const radius = box.getBoundingSphere(new THREE.Sphere()).radius;
       let lo = radius * 0.4;
@@ -181,7 +179,9 @@ export function RingScene({ config, view, bounces, smallBounces }: { config: Rin
     color: alloy.color,
     metalness: 1,
     roughness: alloy.roughness,
-    envMapIntensity: 1.75,
+    envMapIntensity: 1.65,
+    clearcoat: 0.55,
+    clearcoatRoughness: 0.12,
   }), [alloy.color, alloy.roughness]);
   useEffect(() => () => metal.dispose(), [metal]);
   const envMap = useEnvironment({ files: HDR });
@@ -189,6 +189,7 @@ export function RingScene({ config, view, bounces, smallBounces }: { config: Rin
   const tex = useEngraving(config.engraving);
   useEffect(() => () => tex?.dispose(), [tex]);
   const ringRef = useRef<THREE.Group>(null);
+  const spinning = useRef(true);
   const smallGem = useMemo(() => gemGeometry("round"), []);
   const pave = useMemo(() => {
     if (config.mode !== "finished" || config.setting !== "pave" || diameter <= 0) return [];
@@ -212,11 +213,33 @@ export function RingScene({ config, view, bounces, smallBounces }: { config: Rin
     return stones;
   }, [config.mode, config.setting, diameter, outer]);
 
-  const pose: [number, number, number] = view === "in" ? [0.4, 0.15, 0] : [0.32, -0.55, 0];
+  const pose = useMemo<[number, number, number]>(() => (view === "in" ? [0.4, 0.15, 0] : [0.34, -0.62, 0]), [view]);
+  const shadow = useMemo(() => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 256;
+    canvas.height = 256;
+    const g = canvas.getContext("2d");
+    if (!g) return null;
+    const grd = g.createRadialGradient(128, 128, 8, 128, 128, 118);
+    grd.addColorStop(0, "rgba(48,40,32,0.22)");
+    grd.addColorStop(0.45, "rgba(48,40,32,0.06)");
+    grd.addColorStop(1, "rgba(48,40,32,0)");
+    g.fillStyle = grd;
+    g.fillRect(0, 0, 256, 256);
+    const map = new THREE.CanvasTexture(canvas);
+    map.colorSpace = THREE.SRGBColorSpace;
+    return map;
+  }, []);
+  useEffect(() => () => shadow?.dispose(), [shadow]);
+  useFrame((_, dt) => {
+    if (spinning.current && view === "out" && ringRef.current && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      ringRef.current.rotation.y += dt * 0.18;
+    }
+  });
 
   return (
     <>
-      <Environment files={HDR} environmentIntensity={1.15} environmentRotation={[0, 0.35, 0]} />
+      <Environment files={HDR} environmentIntensity={1.25} environmentRotation={[0, 0.55, 0]} />
       <FitView view={view} root={ringRef} revision={`${config.mode}-${config.size_mm}-${config.width_mm}-${config.carat}-${config.shape}-${config.setting}-${view}`} />
       <ambientLight intensity={0.06} />
       <group ref={ringRef} rotation={pose}>
@@ -238,11 +261,13 @@ export function RingScene({ config, view, bounces, smallBounces }: { config: Rin
           <Gem key={`p${index}`} geometry={smallGem} envMap={envMap} bounces={smallBounces} scale={1.15} position={stone.position} quaternion={stone.quaternion} />
         ))}
       </group>
-      <ContactShadows position={[0, -(outer + 0.2), 0]} opacity={0.28} scale={outer * 5} blur={2.6} far={outer * 2} color="#3a342c" />
-      <OrbitControls makeDefault enablePan={false} enableDamping />
-      <EffectComposer enableNormalPass={false} multisampling={0}>
-        <Bloom intensity={0.42} luminanceThreshold={0.86} luminanceSmoothing={0.18} mipmapBlur />
-      </EffectComposer>
+      {shadow && (
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -(outer + 0.35), 0]}>
+          <planeGeometry args={[outer * 4.2, outer * 4.2]} />
+          <meshBasicMaterial map={shadow} transparent depthWrite={false} toneMapped={false} />
+        </mesh>
+      )}
+      <OrbitControls makeDefault enablePan={false} enableDamping dampingFactor={0.08} rotateSpeed={0.65} zoomSpeed={0.7} onStart={() => { spinning.current = false; }} />
     </>
   );
 }
